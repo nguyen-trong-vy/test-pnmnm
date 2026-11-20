@@ -1,0 +1,21 @@
+# Môi trường ảo Python (TUYỆT ĐỐI không commit .venv/ theo yêu cầu môn học)
+.venv/
+venv/
+env/
+
+# File biên dịch Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Thư mục lưu CSDL SQLite cục bộ và biến môi trường
+instance/
+*.db
+*.sqlite3
+.env
+
+# File hệ điều hành và IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
