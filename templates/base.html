@@ -148,7 +148,7 @@
         <div class="col-md-4 text-center text-md-start small">
           <div>&copy; {{ current_year }} YuuCake · Dự án Học phần Phần mềm Mã nguồn mở</div>
           <div class="opacity-75 mt-1">
-            <a href="#" class="text-light text-decoration-underline me-2">API JSON</a>
+            <a href="{{ url_for('api.api_list_products') }}" class="text-light text-decoration-underline me-2">API JSON</a>
             <a href="{{ url_for('store.search') }}" class="text-light text-decoration-underline me-2">Tìm kiếm</a>
             <a href="{{ url_for('store.load_sample_data') }}" class="text-light text-decoration-underline me-2">Nạp dữ liệu mẫu</a>
             <!-- Quản trị /admin sẽ bổ sung ở Commit 10 -->
