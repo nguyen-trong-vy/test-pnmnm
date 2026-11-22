@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 860px;">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{{ url_for('store.home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('store.blog_list') }}" class="text-decoration-none text-muted">Bài viết</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ post.title }}</li>
+    </ol>
+  </nav>
+
+  <span class="yuu-tag-pill">{{ post.category_label }}</span>
+  <h1 class="h2 fw-bold mt-2 mb-2">{{ post.title }}</h1>
+  <p class="text-muted small mb-4">Đăng bởi <strong>YuuCake</strong> · {{ post.published_at | date_vn }}</p>
+
+  <img src="{{ url_for('static', filename=post.image) }}" alt="{{ post.title }}"
+       class="img-fluid rounded-4 shadow-sm mb-4 w-100" style="max-height: 420px; object-fit: cover;">
+
+  <div class="fs-6" style="line-height: 1.85; white-space: pre-line;">{{ post.content }}</div>
+
+  <hr class="my-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="h5 fw-bold mb-0">Bài viết khác</h2>
+    <a href="{{ url_for('store.blog_list') }}" class="small text-decoration-none fw-semibold" style="color: var(--yuu-brown);">Xem tất cả</a>
+  </div>
+  <div class="row g-3">
+    {% for item in other_posts %}
+      <div class="col-md-6">
+        <a href="{{ url_for('store.blog_detail', slug=item.slug) }}" class="yuu-surface p-3 d-block text-decoration-none text-dark h-100">
+          <span class="yuu-tag-pill mb-2">{{ item.category_label }}</span>
+          <div class="fw-bold mt-1">{{ item.title }}</div>
+          <div class="small text-muted mt-1">{{ item.published_at | date_vn }}</div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

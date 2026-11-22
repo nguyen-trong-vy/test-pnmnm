@@ -113,7 +113,7 @@
   {# Ô tìm kiếm nhanh ẩn/hiện khi bấm kính lúp (trỏ về route /tim-kiem an toàn chống XSS) #}
   <div id="yuuQuickSearch" class="yuu-quick-search py-3 d-none">
     <div class="container">
-      <form action="#" method="get" class="d-flex gap-2 mx-auto" style="max-width: 640px;">
+      <form action="{{ url_for('store.search') }}" method="get" class="d-flex gap-2 mx-auto" style="max-width: 640px;">
         <input id="yuuQuickSearchInput" type="search" name="q" class="form-control"
                placeholder="Nhập tên bánh cần tìm (vd: Donut, Mousse, Cupcake, Topper)...">
         <button type="submit" class="btn btn-yuu px-4">Tìm</button>
@@ -149,8 +149,8 @@
           <div>&copy; {{ current_year }} YuuCake · Dự án Học phần Phần mềm Mã nguồn mở</div>
           <div class="opacity-75 mt-1">
             <a href="#" class="text-light text-decoration-underline me-2">API JSON</a>
-            <a href="#" class="text-light text-decoration-underline me-2">Tìm kiếm</a>
-            <a href="#" class="text-light text-decoration-underline me-2">Nạp dữ liệu mẫu</a>
+            <a href="{{ url_for('store.search') }}" class="text-light text-decoration-underline me-2">Tìm kiếm</a>
+            <a href="{{ url_for('store.load_sample_data') }}" class="text-light text-decoration-underline me-2">Nạp dữ liệu mẫu</a>
             <!-- Quản trị /admin sẽ bổ sung ở Commit 10 -->
           </div>
         </div>

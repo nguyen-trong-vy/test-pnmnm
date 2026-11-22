@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  {# Breadcrumb điều hướng giống Màn hình ② #}
+  <nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="{{ url_for('store.home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('store.products') }}" class="text-decoration-none text-muted">Sản phẩm</a></li>
+      <li class="breadcrumb-item">
+        <a href="{{ url_for('store.products', category=product.category.slug) }}" class="text-decoration-none text-muted">
+          {{ product.category.name }}
+        </a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5 align-items-start">
+    <div class="col-lg-5">
+      <div class="yuu-surface p-4 text-center bg-white">
+        <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}"
+             class="img-fluid" style="max-height: 370px; object-fit: contain;">
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <a href="{{ url_for('store.products', category=product.category.slug) }}"
+         class="yuu-tag-pill text-decoration-none mb-2">{{ product.category.name }}</a>
+
+      <h1 class="h2 fw-bold mt-2 mb-2">{{ product.name }}</h1>
+      <div class="fs-3 fw-bold mb-3" style="color: var(--yuu-accent);">{{ product.price | vnd }}</div>
+
+      <div class="mb-3">
+        {% if product.stock > 0 %}
+          <span class="text-success fw-semibold">
+            <i class="bi bi-check-circle-fill me-1"></i> Còn {{ product.stock }} sản phẩm trong kho
+          </span>
+        {% else %}
+          <span class="text-danger fw-semibold">
+            <i class="bi bi-x-circle-fill me-1"></i> Hiện đang hết hàng
+          </span>
+        {% endif %}
+      </div>
+
+      <p class="text-muted mb-4" style="line-height: 1.75;">{{ product.description }}</p>
+
+      {# Form chọn số lượng thêm vào giỏ (kiểm tra cả client lẫn server - Chương 5) #}
+      {% if product.stock > 0 and max_addable > 0 %}
+        <form action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" method="post" class="mb-4">
+          {{ form.hidden_tag() }}
+          <input type="hidden" name="next" value="{{ url_for('store.product_detail', product_id=product.id) }}">
+
+          <label for="detailQtyInput" class="form-label fw-semibold">Số lượng</label>
+          <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+            <div class="input-group" style="width: 145px;">
+              <button type="button" id="detailQtyDec" class="btn btn-outline-secondary">−</button>
+              <input type="number" id="detailQtyInput" name="quantity" value="1"
+                     min="1" max="{{ max_addable }}" class="form-control text-center fw-bold">
+              <button type="button" id="detailQtyInc" class="btn btn-outline-secondary">+</button>
+            </div>
+            <span class="small text-muted">
+              tối đa {{ max_addable }}
+              {% if in_cart > 0 %}(đã có {{ in_cart }} trong giỏ){% endif %}
+            </span>
+          </div>
+
+          <button type="submit" class="btn btn-yuu px-4 py-2">
+            <i class="bi bi-cart-plus me-2"></i>Thêm vào giỏ hàng
+          </button>
+        </form>
+      {% elif product.stock > 0 %}
+        <div class="alert alert-warning">
+          Bạn đã thêm tối đa {{ in_cart }} sản phẩm này vào giỏ hàng.
+          <a href="{{ url_for('cart.view_cart') }}" class="fw-bold alert-link">Xem giỏ hàng</a>
+        </div>
+      {% else %}
+        <button type="button" class="btn btn-secondary px-4 py-2 mb-4" disabled>Tạm hết hàng</button>
+      {% endif %}
+
+      {# Tiện ích tổng hợp kiến thức Chương 3: Link rút gọn 301 & Xuất thông tin CSV #}
+      <div class="yuu-surface p-3 small">
+        <div class="fw-semibold mb-2"><i class="bi bi-link-45deg me-1"></i>Tiện ích liên kết &amp; dữ liệu</div>
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+          <span>
+            Link rút gọn (301):
+            <a href="{{ url_for('store.product_short_redirect', product_id=product.id) }}" class="fw-semibold">
+              {{ url_for('store.product_short_redirect', product_id=product.id) }}
+            </a>
+          </span>
+          <a href="{{ url_for('store.export_product_csv', product_id=product.id) }}" class="btn btn-sm btn-yuu-outline">
+            <i class="bi bi-download me-1"></i>Tải thông tin bánh (CSV)
+          </a>
+          <a href="{{ url_for('api.api_product_detail', product_id=product.id) }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-braces me-1"></i>Xem JSON
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Sản phẩm cùng danh mục #}
+  {% if related_products %}
+    <hr class="my-5">
+    <h2 class="h4 fw-bold mb-4">Sản phẩm cùng danh mục {{ product.category.name }}</h2>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+      {% for item in related_products %}
+        <div class="col">
+          <div class="yuu-product-card">
+            <a href="{{ url_for('store.product_detail', product_id=item.id) }}" class="yuu-product-thumb">
+              <img src="{{ url_for('static', filename=item.image) }}" alt="{{ item.name }}">
+            </a>
+            <a href="{{ url_for('store.product_detail', product_id=item.id) }}" class="yuu-product-title">{{ item.name }}</a>
+            <div class="yuu-price mt-auto">{{ item.price | vnd }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

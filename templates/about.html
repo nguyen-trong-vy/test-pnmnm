@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Về YuuCake{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 960px;">
+  <div class="row align-items-center g-4 mb-5">
+    <div class="col-md-6">
+      <span class="yuu-tag-pill mb-2">Câu chuyện thương hiệu</span>
+      <h1 class="h2 fw-bold mt-2 mb-3">Yuu Cake – Ngọt ngào từ từng mẻ bánh thủ công</h1>
+      <p class="text-muted" style="line-height: 1.75;">
+        Yuu Cake được xây dựng như một dự án thực hành tổng hợp Học phần Phần mềm Mã nguồn mở (Flask, Jinja2,
+        Flask-WTF, Session và SQLAlchemy 2.0), kết hợp giao diện tiệm bánh hiện đại, ấm cúng và thân thiện.
+      </p>
+      <p class="text-muted mb-4" style="line-height: 1.75;">
+        Mỗi chiếc bánh từ Donut, Cupcake, Bánh quy đến Bánh sinh nhật đều có tồn kho được quản lý trực tiếp
+        trong CSDL SQLite để sẵn sàng mở rộng thêm trang quản trị <code>/admin</code> ở giai đoạn tiếp theo.
+      </p>
+      <a href="{{ url_for('store.products') }}" class="btn btn-yuu px-4">Khám phá thực đơn</a>
+    </div>
+    <div class="col-md-6 text-center">
+      <img src="{{ url_for('static', filename='images/products/sinh-nhat-3.avif') }}" alt="Yuu Cake"
+           class="img-fluid yuu-showcase-img">
+    </div>
+  </div>
+
+  {# Số liệu thống kê trực tiếp từ CSDL bằng func.count / func.sum / func.avg (Chương 6) #}
+  <div class="row g-3 text-center">
+    <div class="col-6 col-md-3">
+      <div class="yuu-surface p-4">
+        <div class="fs-2 fw-bold" style="color: var(--yuu-brown);">{{ stats.total_categories }}</div>
+        <div class="small text-muted">Danh mục bánh</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="yuu-surface p-4">
+        <div class="fs-2 fw-bold" style="color: var(--yuu-brown);">{{ stats.total_products }}</div>
+        <div class="small text-muted">Sản phẩm đang bán</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="yuu-surface p-4">
+        <div class="fs-2 fw-bold" style="color: var(--yuu-brown);">{{ stats.total_stock }}</div>
+        <div class="small text-muted">Tổng bánh sẵn kho</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="yuu-surface p-4">
+        <div class="fs-5 fw-bold mt-2" style="color: var(--yuu-accent);">{{ stats.avg_price | vnd }}</div>
+        <div class="small text-muted mt-1">Giá trung bình</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
