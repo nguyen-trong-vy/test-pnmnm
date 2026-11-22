@@ -1,0 +1,672 @@
+/*
+ * style.css - Bộ giao diện tùy biến mô phỏng tiệm bánh Yuu Cake (từ video mẫu).
+ *
+ * Giải thích phần giao diện mở rộng (ngoài khung Bootstrap 5 cơ bản ở Chương 4):
+ * - Sử dụng CSS Variables (:root) để đồng bộ bảng màu nâu sô-cô-la & kem ấm trên toàn trang.
+ * - Hiệu ứng chữ chạy ngang (@keyframes yuu-marquee) cho thanh thông báo vận chuyển.
+ * - Hero Slider với lớp phủ tối chuyển sắc (gradient overlay) giúp chữ trắng luôn nổi bật.
+ * - Thẻ danh mục và thẻ sản phẩm bo góc mềm mại, nâng nhẹ khi di chuột (hover transition).
+ */
+
+:root {
+  --yuu-brown: #4a2016;
+  --yuu-brown-dark: #36160e;
+  --yuu-brown-hover: #642c1f;
+  --yuu-cream: #faf5f0;
+  --yuu-card-bg: #fbf7f3;
+  --yuu-border: #eee4db;
+  --yuu-text: #2a1812;
+  --yuu-muted: #76645c;
+  --yuu-accent: #e86f2c;
+}
+
+body {
+  font-family: "Be Vietnam Pro", system-ui, -apple-system, sans-serif;
+  color: var(--yuu-text);
+  background-color: #ffffff;
+  overflow-x: hidden;
+}
+
+/* Thanh thông báo mỏng trên cùng */
+.yuu-topbar {
+  background-color: var(--yuu-brown-dark);
+  color: #fff8f2;
+  font-size: 0.82rem;
+  letter-spacing: 0.01em;
+}
+
+/* Thanh điều hướng chính (Navbar) */
+.yuu-navbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--yuu-border);
+  padding-top: 0.8rem;
+  padding-bottom: 0.8rem;
+}
+
+.yuu-brand {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--yuu-brown) !important;
+  letter-spacing: -0.02em;
+}
+
+.yuu-navbar .nav-link {
+  color: var(--yuu-text);
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.9rem !important;
+  transition: color 0.2s ease;
+}
+
+.yuu-navbar .nav-link:hover,
+.yuu-navbar .nav-link.active {
+  color: var(--yuu-brown);
+}
+
+/* Hai nút icon tìm kiếm và giỏ hàng góc phải màu nâu sô-cô-la giống video */
+.yuu-icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background-color: var(--yuu-brown);
+  color: #ffffff;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.yuu-icon-btn:hover {
+  background-color: var(--yuu-brown-hover);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.yuu-cart-badge {
+  position: absolute;
+  top: -7px;
+  right: -8px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background-color: var(--yuu-accent);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+}
+
+/* Nút màu nâu thương hiệu Yuu Cake */
+.btn-yuu {
+  background-color: var(--yuu-brown);
+  border-color: var(--yuu-brown);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.btn-yuu:hover,
+.btn-yuu:focus {
+  background-color: var(--yuu-brown-hover);
+  border-color: var(--yuu-brown-hover);
+  color: #ffffff;
+}
+
+.btn-yuu-outline {
+  border: 1.5px solid var(--yuu-brown);
+  color: var(--yuu-brown);
+  background-color: transparent;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.btn-yuu-outline:hover {
+  background-color: var(--yuu-brown);
+  color: #ffffff;
+}
+
+/* === 1. HERO SLIDER (giống phần mở đầu video) === */
+.yuu-hero {
+  position: relative;
+  height: 520px;
+  overflow: hidden;
+  background-color: #22100a;
+}
+
+.yuu-hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-size: cover;
+  background-position: center;
+}
+
+.yuu-hero-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.yuu-hero-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+.yuu-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(38, 17, 10, 0.58) 0%, rgba(24, 10, 6, 0.82) 100%);
+  z-index: 1;
+}
+
+.yuu-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 780px;
+  padding: 0 1.5rem;
+  color: #ffffff;
+}
+
+.yuu-hero-eyebrow {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #f3dfd2;
+  margin-bottom: 0.75rem;
+}
+
+.yuu-hero-title {
+  font-size: clamp(2rem, 4.2vw, 3.35rem);
+  font-weight: 800;
+  line-height: 1.18;
+  margin-bottom: 1.6rem;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.yuu-hero-cta {
+  background-color: #ffffff;
+  color: var(--yuu-brown);
+  font-weight: 600;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  text-decoration: none;
+  display: inline-block;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.yuu-hero-cta:hover {
+  background-color: var(--yuu-cream);
+  color: var(--yuu-brown-dark);
+  transform: translateY(-2px);
+}
+
+.yuu-hero-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: rgba(38, 17, 10, 0.45);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.yuu-hero-arrow:hover {
+  background-color: rgba(74, 32, 22, 0.85);
+  transform: translateY(-50%) scale(1.08);
+  color: #ffffff;
+}
+
+.yuu-hero-prev {
+  left: 20px;
+}
+
+.yuu-hero-next {
+  right: 20px;
+}
+
+@media (max-width: 576px) {
+  .yuu-hero-arrow {
+    display: none;
+  }
+}
+
+.yuu-hero-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  gap: 8px;
+}
+
+.yuu-hero-dot {
+  width: 26px;
+  height: 5px;
+  border-radius: 999px;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: background-color 0.25s ease, width 0.25s ease;
+}
+
+.yuu-hero-dot.active {
+  width: 40px;
+  background-color: #ffffff;
+}
+
+/* === 2. THANH MARQUEE CHẠY NGANG === */
+.yuu-marquee-wrap {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--yuu-border);
+  overflow: hidden;
+  padding: 0.65rem 0;
+  white-space: nowrap;
+}
+
+.yuu-marquee-track {
+  display: inline-flex;
+  gap: 3.5rem;
+  animation: yuu-marquee 26s linear infinite;
+  font-size: 0.88rem;
+  color: var(--yuu-text);
+  font-weight: 500;
+}
+
+.yuu-marquee-wrap:hover .yuu-marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes yuu-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* === 3. PHÂN KHU KIỆT TÁC BÁNH NGỌT === */
+.yuu-showcase {
+  background-color: var(--yuu-cream);
+  padding: 4.5rem 0;
+}
+
+.yuu-showcase-img {
+  max-height: 360px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 26px rgba(74, 32, 22, 0.16));
+  transition: transform 0.35s ease;
+}
+
+.yuu-showcase-img:hover {
+  transform: scale(1.03);
+}
+
+/* === 4. DANH MỤC SẢN PHẨM === */
+.yuu-section {
+  padding: 4.2rem 0;
+}
+
+.yuu-section-title {
+  font-size: clamp(1.65rem, 2.5vw, 2.15rem);
+  font-weight: 800;
+  color: var(--yuu-text);
+  margin-bottom: 0.45rem;
+}
+
+.yuu-section-sub {
+  color: var(--yuu-muted);
+  font-size: 0.96rem;
+  margin-bottom: 2.5rem;
+}
+
+.yuu-cat-card {
+  display: block;
+  text-decoration: none;
+  color: var(--yuu-text);
+  text-align: center;
+  padding: 1.25rem 0.75rem;
+  border-radius: 16px;
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.yuu-cat-card:hover {
+  background-color: var(--yuu-cream);
+  transform: translateY(-5px);
+  color: var(--yuu-brown);
+}
+
+.yuu-cat-img-box {
+  height: 155px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.yuu-cat-img-box img {
+  max-height: 145px;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.yuu-cat-card:hover .yuu-cat-img-box img {
+  transform: scale(1.07);
+}
+
+.yuu-cat-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+/* === 5. THẺ SẢN PHẨM (Card) === */
+.yuu-product-card {
+  background-color: var(--yuu-card-bg);
+  border: 1px solid var(--yuu-border);
+  border-radius: 16px;
+  padding: 1.15rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.yuu-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 26px rgba(74, 32, 22, 0.08);
+}
+
+.yuu-product-thumb {
+  height: 185px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.yuu-product-thumb img {
+  max-height: 160px;
+  max-width: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.yuu-product-card:hover .yuu-product-thumb img {
+  transform: scale(1.06);
+}
+
+.yuu-product-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--yuu-text);
+  text-decoration: none;
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.yuu-product-title:hover {
+  color: var(--yuu-brown);
+}
+
+.yuu-product-desc {
+  color: var(--yuu-muted);
+  font-size: 0.85rem;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 0.85rem;
+}
+
+.yuu-price {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--yuu-brown);
+}
+
+/* === 6. BLOG CARDS (khớp bố cục ngang giống video) === */
+.yuu-blog-card {
+  background-color: #ffffff;
+  border: 1px solid var(--yuu-border);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.yuu-blog-card:hover {
+  box-shadow: 0 12px 28px rgba(74, 32, 22, 0.09);
+  transform: translateY(-3px);
+}
+
+.yuu-blog-thumb {
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+  display: block;
+}
+
+.yuu-tag-pill {
+  display: inline-block;
+  background-color: #f3e6dc;
+  color: var(--yuu-brown);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+}
+
+/* === 7. FOOTER NÂU ĐẬM === */
+.yuu-footer {
+  background-color: var(--yuu-brown-dark);
+  color: #f3e8e0;
+  padding: 2.2rem 0;
+  margin-top: 3rem;
+}
+
+.yuu-footer-brand {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.yuu-social-link {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.yuu-social-link:hover {
+  background-color: var(--yuu-accent);
+  color: #ffffff;
+}
+
+/* Tiện ích trang chi tiết / giỏ hàng / thanh toán */
+.yuu-surface {
+  background-color: var(--yuu-card-bg);
+  border: 1px solid var(--yuu-border);
+  border-radius: 16px;
+}
+
+.yuu-qty-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+/* Thanh tìm kiếm trượt nhanh trên navbar */
+.yuu-quick-search {
+  background-color: var(--yuu-cream);
+  border-bottom: 1px solid var(--yuu-border);
+}
+
+@media (max-width: 767.98px) {
+  .yuu-hero {
+    height: 400px;
+  }
+  .yuu-blog-thumb {
+    height: 195px;
+  }
+}
+
+/* === 8. GIAO DIỆN PHÂN HỆ QUẢN TRỊ (ADMIN PANEL) === */
+.yuu-admin-body {
+  background-color: #f7f3ee;
+  color: var(--yuu-text);
+  min-height: 100vh;
+}
+
+.yuu-admin-wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.yuu-admin-sidebar {
+  width: 260px;
+  min-width: 260px;
+  background-color: var(--yuu-brown-dark);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.yuu-admin-sidebar-header {
+  padding: 1.5rem 1.25rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.yuu-admin-nav {
+  padding: 1rem 0.75rem;
+  flex: 1;
+}
+
+.yuu-admin-nav-group-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.25rem;
+}
+
+.yuu-admin-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-radius: 8px;
+  margin-bottom: 0.25rem;
+  transition: all 0.15s ease-in-out;
+}
+
+.yuu-admin-nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.yuu-admin-nav-item.active {
+  background-color: var(--yuu-brown);
+  color: #ffffff;
+  font-weight: 600;
+  border-left: 3.5px solid var(--yuu-accent);
+}
+
+.yuu-admin-sidebar-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+.yuu-admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+.yuu-admin-topbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--yuu-border);
+  padding: 1rem 1.5rem;
+}
+
+.yuu-admin-card {
+  background-color: #ffffff;
+  border: 1px solid var(--yuu-border);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.yuu-stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 991.98px) {
+  .yuu-admin-wrapper {
+    flex-direction: column;
+  }
+  .yuu-admin-sidebar {
+    width: 100%;
+    min-height: auto;
+  }
+}
