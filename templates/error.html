@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Lỗi {{ code }}{% endblock %}
+
+{% block content %}
+<div class="container py-5 text-center" style="max-width: 620px;">
+  <div class="yuu-surface p-5">
+    <div class="display-1 fw-bold" style="color: var(--yuu-brown);">{{ code }}</div>
+    <h1 class="h4 fw-bold mt-2 mb-3">{{ title }}</h1>
+    <p class="text-muted mb-4">{{ detail }}</p>
+    <div class="d-flex justify-content-center gap-2">
+      <a href="{{ url_for('store.home') }}" class="btn btn-yuu">Về trang chủ</a>
+      <a href="{{ url_for('store.products') }}" class="btn btn-yuu-outline">Xem sản phẩm</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
