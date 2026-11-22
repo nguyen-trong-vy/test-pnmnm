@@ -1,0 +1,174 @@
+{#
+  base.html - Khuôn mẫu giao diện chung (Chương 4: Template Inheritance với {% block %}).
+  - Mọi liên kết đều sinh bằng url_for(), tuyệt đối không viết cứng URL (Chương 3).
+  - Biến cart_count và nav_categories được truyền tự động từ @app.context_processor trong app.py.
+#}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Trang chủ{% endblock %} - Yuu Cake</title>
+
+  {# Google Fonts: Playfair Display (logo) & Be Vietnam Pro (chữ tiếng Việt sắc nét) #}
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+
+  {# Bootstrap 5 & Bootstrap Icons (Chương 4) #}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+  {# CSS tuỳ biến giao diện Yuu Cake #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  {# Thanh thông báo nhỏ trên cùng giống video #}
+  <div class="yuu-topbar py-1">
+    <div class="container d-flex justify-content-between align-items-center">
+      <div class="small">
+        <i class="bi bi-stars text-warning me-1"></i>
+        Miễn phí vận chuyển trong phạm vi 2km &amp; đơn từ 200.000 đ · Đặt bánh ngay: <strong>0944100001</strong>
+      </div>
+      <div class="small text-white-50 d-none d-sm-block">
+        <i class="bi bi-clock me-1"></i>Mở cửa: 08:00 - 21:30 hàng ngày
+      </div>
+    </div>
+  </div>
+
+  {# Thanh điều hướng chính (Sticky Navbar) #}
+  <nav class="navbar navbar-expand-lg yuu-navbar sticky-top">
+    <div class="container">
+      <a class="navbar-brand yuu-brand" href="{{ url_for('store.home') }}">Yuu Cake</a>
+
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#yuuNavMenu"
+              aria-controls="yuuNavMenu" aria-expanded="false" aria-label="Mở menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="yuuNavMenu">
+        <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'store.home' %}active fw-bold{% endif %}"
+               href="{{ url_for('store.home') }}">Trang chủ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint in ['store.blog_list', 'store.blog_detail'] %}active fw-bold{% endif %}"
+               href="{{ url_for('store.blog_list') }}">Bài viết</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle {% if request.endpoint in ['store.products', 'store.product_detail'] %}active fw-bold{% endif %}"
+               href="{{ url_for('store.products') }}" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Sản phẩm
+            </a>
+            <ul class="dropdown-menu border-0 shadow-sm rounded-3">
+              <li>
+                <a class="dropdown-item fw-semibold" href="{{ url_for('store.products') }}">
+                  <i class="bi bi-grid me-2"></i>Tất cả sản phẩm
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              {# Danh mục nạp động từ CSDL qua context_processor #}
+              {% for cat in nav_categories %}
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('store.products', category=cat.slug) }}">
+                    {{ cat.name }}
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint in ['cart.view_cart', 'checkout.checkout'] %}active fw-bold{% endif %}"
+               href="{{ url_for('checkout.checkout') }}">Đặt hàng</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'store.faq' %}active fw-bold{% endif %}"
+               href="{{ url_for('store.faq') }}">Hỏi đáp</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.endpoint == 'store.about' %}active fw-bold{% endif %}"
+               href="{{ url_for('store.about') }}">Về YuuCake</a>
+          </li>
+        </ul>
+
+        {# Góc phải: Nút tìm kiếm và Nút giỏ hàng kèm badge số lượng #}
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" id="yuuSearchToggle" class="yuu-icon-btn" title="Tìm kiếm bánh">
+            <i class="bi bi-search"></i>
+          </button>
+          <a href="{{ url_for('cart.view_cart') }}" class="yuu-icon-btn" title="Giỏ hàng của bạn">
+            <i class="bi bi-cart3"></i>
+            {% if cart_count > 0 %}
+              <span class="yuu-cart-badge">{{ cart_count }}</span>
+            {% endif %}
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  {# Ô tìm kiếm nhanh ẩn/hiện khi bấm kính lúp (trỏ về route /tim-kiem an toàn chống XSS) #}
+  <div id="yuuQuickSearch" class="yuu-quick-search py-3 d-none">
+    <div class="container">
+      <form action="#" method="get" class="d-flex gap-2 mx-auto" style="max-width: 640px;">
+        <input id="yuuQuickSearchInput" type="search" name="q" class="form-control"
+               placeholder="Nhập tên bánh cần tìm (vd: Donut, Mousse, Cupcake, Topper)...">
+        <button type="submit" class="btn btn-yuu px-4">Tìm</button>
+      </form>
+    </div>
+  </div>
+
+  {# Hiển thị Flash Messages (Chương 5 - PRG Pattern) #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0 rounded-3 mb-2" role="alert">
+            <i class="bi {% if category == 'success' %}bi-check-circle-fill{% elif category == 'danger' %}bi-exclamation-triangle-fill{% elif category == 'warning' %}bi-exclamation-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {# Nội dung riêng của từng trang con #}
+  <main class="flex-grow-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  {# Footer nâu sô-cô-la giống video Yuu Cake #}
+  <footer class="yuu-footer">
+    <div class="container">
+      <div class="row align-items-center gy-3">
+        <div class="col-md-4 text-center text-md-start small">
+          <div>&copy; {{ current_year }} YuuCake · Dự án Học phần Phần mềm Mã nguồn mở</div>
+          <div class="opacity-75 mt-1">
+            <a href="#" class="text-light text-decoration-underline me-2">API JSON</a>
+            <a href="#" class="text-light text-decoration-underline me-2">Tìm kiếm</a>
+            <a href="#" class="text-light text-decoration-underline me-2">Nạp dữ liệu mẫu</a>
+            <!-- Quản trị /admin sẽ bổ sung ở Commit 10 -->
+          </div>
+        </div>
+        <div class="col-md-4 text-center">
+          <a href="{{ url_for('store.home') }}" class="yuu-footer-brand">Yuu Cake</a>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center justify-content-md-end gap-2">
+          <a href="{{ url_for('store.about') }}" class="yuu-social-link" title="Facebook"><i class="bi bi-facebook"></i></a>
+          <a href="{{ url_for('store.about') }}" class="yuu-social-link" title="TikTok"><i class="bi bi-tiktok"></i></a>
+          <a href="{{ url_for('store.about') }}" class="yuu-social-link" title="Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="{{ url_for('store.faq') }}" class="yuu-social-link" title="Email hỗ trợ"><i class="bi bi-envelope-fill"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
