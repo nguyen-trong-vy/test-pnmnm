@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Đặt hàng{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 1080px;">
+  <h1 class="h2 fw-bold mb-4">Thông tin khách hàng</h1>
+
+  <div class="row g-4">
+    {# Cột trái: Form đặt hàng Flask-WTF có hiển thị lỗi is-invalid / invalid-feedback (Chương 5) #}
+    <div class="col-lg-7">
+      <form method="post" novalidate class="yuu-surface p-4">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          <label for="{{ form.customer_name.id }}" class="form-label fw-semibold">
+            {{ form.customer_name.label.text }} <span class="text-danger">*</span>
+          </label>
+          {{ form.customer_name(class="form-control" + (" is-invalid" if form.customer_name.errors else ""), placeholder="Ví dụ: Nguyễn Văn An") }}
+          {% for err in form.customer_name.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <label for="{{ form.phone.id }}" class="form-label fw-semibold">
+              {{ form.phone.label.text }} <span class="text-danger">*</span>
+            </label>
+            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="0912345678") }}
+            {% for err in form.phone.errors %}
+              <div class="invalid-feedback">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="col-md-6">
+            <label for="{{ form.email.id }}" class="form-label fw-semibold">
+              {{ form.email.label.text }} <span class="text-muted small">(tuỳ chọn)</span>
+            </label>
+            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="ban@example.com") }}
+            {% for err in form.email.errors %}
+              <div class="invalid-feedback">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.address.id }}" class="form-label fw-semibold">
+            {{ form.address.label.text }} <span class="text-danger">*</span>
+          </label>
+          {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), rows="3", placeholder="Ví dụ: 12 Lê Lợi, phường Thuận Hoá, TP. Huế") }}
+          {% for err in form.address.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-3">
+          <label for="{{ form.note.id }}" class="form-label fw-semibold">{{ form.note.label.text }}</label>
+          {{ form.note(class="form-control" + (" is-invalid" if form.note.errors else ""), rows="2", placeholder="Lời chúc viết lên bánh, giờ giao mong muốn...") }}
+          {% for err in form.note.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label fw-semibold d-block">
+            Thanh toán <span class="text-danger">*</span>
+          </label>
+          <div class="d-flex flex-wrap gap-4">
+            {% for subfield in form.payment_method %}
+              <div class="form-check">
+                {{ subfield(class="form-check-input") }}
+                <label class="form-check-label" for="{{ subfield.id }}">{{ subfield.label.text }}</label>
+              </div>
+            {% endfor %}
+          </div>
+          {% for err in form.payment_method.errors %}
+            <div class="text-danger small mt-1">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        <div class="d-flex flex-wrap align-items-center gap-3">
+          <button type="submit" class="btn btn-yuu btn-lg px-4">
+            <i class="bi bi-check2-circle me-1"></i>Xác nhận đặt hàng
+          </button>
+          <a href="{{ url_for('cart.view_cart') }}" class="text-decoration-none fw-semibold" style="color: var(--yuu-brown);">
+            <i class="bi bi-arrow-left me-1"></i>Quay lại giỏ hàng
+          </a>
+        </div>
+      </form>
+    </div>
+
+    {# Cột phải: Tóm tắt đơn hàng giống Màn hình ④ #}
+    <div class="col-lg-5">
+      <div class="yuu-surface p-4">
+        <h2 class="h5 fw-bold mb-3">Đơn hàng của bạn</h2>
+        <ul class="list-unstyled mb-3">
+          {% for row in items %}
+            <li class="d-flex justify-content-between py-2 border-bottom small">
+              <span>{{ row.product.name }} &times; <strong>{{ row.quantity }}</strong></span>
+              <span class="fw-semibold text-nowrap">{{ row.line_total | vnd }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+
+        <div class="d-flex justify-content-between mb-2 small">
+          <span class="text-muted">Tạm tính</span>
+          <span class="fw-semibold">{{ subtotal | vnd }}</span>
+        </div>
+        <div class="d-flex justify-content-between mb-1 small">
+          <span class="text-muted">Phí giao hàng</span>
+          {% if shipping_fee == 0 %}
+            <span class="text-success fw-bold">Miễn phí</span>
+          {% else %}
+            <span class="fw-semibold">{{ shipping_fee | vnd }}</span>
+          {% endif %}
+        </div>
+        <div class="text-muted mb-3" style="font-size: 0.78rem;">
+          Miễn phí giao hàng khi tạm tính từ {{ free_shipping_min | vnd }}
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="fw-bold">Tổng thanh toán</span>
+          <span class="fs-4 fw-bold" style="color: var(--yuu-accent);">{{ grand_total | vnd }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
