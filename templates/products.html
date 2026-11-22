@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{% if active_category %}{{ active_category.name }}{% else %}Sản phẩm{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="d-flex flex-wrap justify-content-between align-items-end mb-4 gap-3">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small mb-1">
+          <li class="breadcrumb-item"><a href="{{ url_for('store.home') }}" class="text-decoration-none text-muted">Trang chủ</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Sản phẩm</li>
+        </ol>
+      </nav>
+      <h1 class="h2 fw-bold mb-0">
+        {% if active_category %}{{ active_category.name }}{% else %}Tất cả sản phẩm{% endif %}
+      </h1>
+    </div>
+    <span class="text-muted small">Hiển thị {{ products|length }} / {{ pagination.total }} sản phẩm</span>
+  </div>
+
+  {# Thanh lọc nhanh danh mục (sinh động từ CSDL, không viết cứng - Chương 3 & 6) #}
+  <div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('store.products', q=q or None, sort=sort_by, stock=stock_filter or None) }}"
+       class="btn btn-sm {% if not category_slug %}btn-yuu{% else %}btn-yuu-outline{% endif %}">
+      Tất cả
+    </a>
+    {% for cat, count in cat_counts %}
+      <a href="{{ url_for('store.products', category=cat.slug, q=q or None, sort=sort_by, stock=stock_filter or None) }}"
+         class="btn btn-sm {% if category_slug == cat.slug %}btn-yuu{% else %}btn-yuu-outline{% endif %}">
+        {{ cat.name }} ({{ count }})
+      </a>
+    {% endfor %}
+  </div>
+
+  {# Form tìm kiếm & lọc kết hợp bằng GET request.args (Chương 3) #}
+  <form action="{{ url_for('store.products') }}" method="get" class="yuu-surface p-3 mb-4">
+    <div class="row g-2 align-items-center">
+      <div class="col-md-4">
+        <input type="text" name="q" value="{{ q }}" class="form-control"
+               placeholder="Tìm tên bánh, hương vị...">
+      </div>
+      <div class="col-md-3">
+        <select name="category" class="form-select">
+          <option value="">Mọi danh mục</option>
+          {% for cat, count in cat_counts %}
+            <option value="{{ cat.slug }}" {% if category_slug == cat.slug %}selected{% endif %}>
+              {{ cat.name }} ({{ count }})
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <select name="sort" class="form-select">
+          <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Nổi bật nhất</option>
+          <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Giá tăng dần</option>
+          <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Giá giảm dần</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="stockOnly" name="stock" value="in_stock"
+                 {% if stock_filter == 'in_stock' %}checked{% endif %}>
+          <label class="form-check-label small" for="stockOnly">Chỉ còn hàng</label>
+        </div>
+      </div>
+      <div class="col-md-1 d-grid">
+        <button type="submit" class="btn btn-yuu">Lọc</button>
+      </div>
+    </div>
+  </form>
+
+  {% if products %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+      {% for product in products %}
+        <div class="col">
+          <div class="yuu-product-card">
+            <a href="{{ url_for('store.product_detail', product_id=product.id) }}" class="yuu-product-thumb">
+              <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
+            </a>
+
+            <div class="mb-1">
+              <a href="{{ url_for('store.products', category=product.category.slug) }}" class="yuu-tag-pill text-decoration-none">
+                {{ product.category.name }}
+              </a>
+            </div>
+            <a href="{{ url_for('store.product_detail', product_id=product.id) }}" class="yuu-product-title mt-1">
+              {{ product.name }}
+            </a>
+            <p class="yuu-product-desc">{{ product.short_desc }}</p>
+
+            <div class="d-flex justify-content-between align-items-center mb-3 mt-auto">
+              <span class="yuu-price">{{ product.price | vnd }}</span>
+              {% if product.stock > 0 %}
+                <span class="small text-muted">Còn {{ product.stock }}</span>
+              {% else %}
+                <span class="badge text-bg-danger">Hết hàng</span>
+              {% endif %}
+            </div>
+
+            {% if product.stock > 0 %}
+              <form action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="quantity" value="1">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <button type="submit" class="btn btn-yuu w-100">
+                  <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ
+                </button>
+              </form>
+            {% else %}
+              <button type="button" class="btn btn-light border text-muted w-100" disabled>Hết hàng</button>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    {# Phân trang giữ nguyên toàn bộ bộ lọc đang chọn (Chương 6) #}
+    {% if pagination.pages > 1 %}
+      <nav aria-label="Phân trang sản phẩm" class="mt-5">
+        <ul class="pagination justify-content-center">
+          <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('store.products', page=pagination.prev_num, category=category_slug or None, q=q or None, sort=sort_by, stock=stock_filter or None) }}">Trước</a>
+          </li>
+          {% for p in pagination.iter_pages() %}
+            {% if p %}
+              <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('store.products', page=p, category=category_slug or None, q=q or None, sort=sort_by, stock=stock_filter or None) }}">{{ p }}</a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+          <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('store.products', page=pagination.next_num, category=category_slug or None, q=q or None, sort=sort_by, stock=stock_filter or None) }}">Sau</a>
+          </li>
+        </ul>
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="yuu-surface p-5 text-center">
+      <i class="bi bi-search fs-1 text-muted"></i>
+      <h2 class="h5 fw-bold mt-3">Không có sản phẩm phù hợp.</h2>
+      <p class="text-muted mb-3">Thử thay đổi từ khoá hoặc xoá bộ lọc danh mục để xem thêm bánh ngon nhé.</p>
+      <a href="{{ url_for('store.products') }}" class="btn btn-yuu">Xem tất cả sản phẩm</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

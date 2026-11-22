@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Hỏi đáp{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 840px;">
+  <div class="text-center mb-4">
+    <h1 class="yuu-section-title">Câu hỏi thường gặp</h1>
+    <p class="text-muted">Giải đáp nhanh về đặt bánh, vận chuyển và thanh toán tại YuuCake</p>
+  </div>
+
+  <div class="accordion shadow-sm rounded-4 overflow-hidden" id="yuuFaqAccordion">
+    {% for question, answer in faqs %}
+      <div class="accordion-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button {% if not loop.first %}collapsed{% endif %} fw-semibold" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#faqItem{{ loop.index }}">
+            {{ question }}
+          </button>
+        </h2>
+        <div id="faqItem{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+             data-bs-parent="#yuuFaqAccordion">
+          <div class="accordion-body text-muted">{{ answer }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

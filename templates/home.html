@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}Trang chủ{% endblock %}
+
+{% block content %}
+{# === 1. HERO SLIDER (Hiển thị 4 ảnh và 1 video trong thư mục slide) === #}
+<section class="yuu-hero">
+  {# Slide 1: Ảnh 1 (slide1.avif) #}
+  <div class="yuu-hero-slide active"
+       style="background-image: url('{{ url_for('static', filename='images/slide/slide1.avif') }}');">
+    <div class="yuu-hero-overlay"></div>
+    <div class="yuu-hero-content">
+      <span class="yuu-hero-eyebrow">Bánh dành cho mùa lễ hội</span>
+      <h1 class="yuu-hero-title">Cùng nhau mở ra sự kỳ diệu!</h1>
+      <a href="{{ url_for('store.products', category='phu-kien-banh') }}" class="yuu-hero-cta">
+        Khám phá Phụ kiện bánh
+      </a>
+    </div>
+  </div>
+
+  {# Slide 2: Video (slide2.mp4) #}
+  <div class="yuu-hero-slide yuu-hero-slide-video">
+    <video class="yuu-hero-video" autoplay muted playsinline preload="auto">
+      <source src="{{ url_for('static', filename='images/slide/slide2.mp4') }}" type="video/mp4">
+      Trình duyệt của bạn không hỗ trợ phát video.
+    </video>
+    <div class="yuu-hero-overlay"></div>
+    <div class="yuu-hero-content">
+      <span class="yuu-hero-eyebrow">Tinh hoa nghệ thuật làm bánh</span>
+      <h1 class="yuu-hero-title">Hương vị ngọt ngào, khoảnh khắc khó quên</h1>
+      <a href="{{ url_for('store.products') }}" class="yuu-hero-cta">
+        Khám phá thực đơn
+      </a>
+    </div>
+  </div>
+
+  {# Slide 3: Ảnh 2 (slide3.avif) #}
+  <div class="yuu-hero-slide"
+       style="background-image: url('{{ url_for('static', filename='images/slide/slide3.avif') }}');">
+    <div class="yuu-hero-overlay"></div>
+    <div class="yuu-hero-content">
+      <span class="yuu-hero-eyebrow">Bánh kem tuyệt hảo</span>
+      <h1 class="yuu-hero-title">Cho ngày Sinh Nhật trọn vẹn.</h1>
+      <a href="{{ url_for('store.products', category='banh-sinh-nhat') }}" class="yuu-hero-cta">
+        Khám phá Bánh sinh nhật
+      </a>
+    </div>
+  </div>
+
+  {# Slide 4: Ảnh 3 (slide4.avif) #}
+  <div class="yuu-hero-slide"
+       style="background-image: url('{{ url_for('static', filename='images/slide/slide4.avif') }}');">
+    <div class="yuu-hero-overlay"></div>
+    <div class="yuu-hero-content">
+      <span class="yuu-hero-eyebrow">Ngọt ngào mỗi ngày</span>
+      <h1 class="yuu-hero-title">Thưởng thức trọn vị bánh tươi.</h1>
+      <a href="{{ url_for('store.products', category='banh-donut') }}" class="yuu-hero-cta">
+        Khám phá Bánh Donut
+      </a>
+    </div>
+  </div>
+
+  {# Slide 5: Ảnh 4 (slide5.avif) #}
+  <div class="yuu-hero-slide"
+       style="background-image: url('{{ url_for('static', filename='images/slide/slide5.avif') }}');">
+    <div class="yuu-hero-overlay"></div>
+    <div class="yuu-hero-content">
+      <span class="yuu-hero-eyebrow">Hương vị quyến rũ</span>
+      <h1 class="yuu-hero-title">Bánh Cupcake &amp; Bánh quy giòn tan</h1>
+      <a href="{{ url_for('store.products', category='banh-cupcake') }}" class="yuu-hero-cta">
+        Khám phá Bánh Cupcake
+      </a>
+    </div>
+  </div>
+
+  {# Nút điều hướng mũi tên Trước / Sau #}
+  <button type="button" class="yuu-hero-arrow yuu-hero-prev" aria-label="Slide trước">
+    <i class="bi bi-chevron-left"></i>
+  </button>
+  <button type="button" class="yuu-hero-arrow yuu-hero-next" aria-label="Slide tiếp theo">
+    <i class="bi bi-chevron-right"></i>
+  </button>
+
+  {# Chấm tròn chọn slide #}
+  <div class="yuu-hero-dots" aria-label="Chuyển banner">
+    <button type="button" class="yuu-hero-dot active" aria-label="Slide 1"></button>
+    <button type="button" class="yuu-hero-dot" aria-label="Slide 2"></button>
+    <button type="button" class="yuu-hero-dot" aria-label="Slide 3"></button>
+    <button type="button" class="yuu-hero-dot" aria-label="Slide 4"></button>
+    <button type="button" class="yuu-hero-dot" aria-label="Slide 5"></button>
+  </div>
+</section>
+
+{# === 2. THANH CHẠY CHỮ THÔNG BÁO (MARQUEE) === #}
+<div class="yuu-marquee-wrap">
+  <div class="yuu-marquee-track">
+    {% for _ in range(4) %}
+      <span><i class="bi bi-truck text-danger me-1"></i> Miễn phí vận chuyển trong phạm vi 2km</span>
+      <span><i class="bi bi-telephone-fill text-danger me-1"></i> Đặt bánh gọi ngay 0944100001</span>
+      <span><i class="bi bi-gift-fill text-warning me-1"></i> Miễn phí giao hàng cho đơn từ 200.000 đ</span>
+    {% endfor %}
+  </div>
+</div>
+
+{# === 3. KIỆT TÁC BÁNH NGỌT, CHINH PHỤC MỌI GIÁC QUAN (00:06 - 00:08) === #}
+<section class="yuu-showcase">
+  <div class="container">
+    <div class="row align-items-center gy-4">
+      <div class="col-lg-6">
+        <h2 class="display-6 fw-bold mb-3" style="color: var(--yuu-text);">
+          Kiệt tác bánh ngọt,<br>chinh phục mọi giác quan
+        </h2>
+        <p class="text-muted fs-6 mb-4" style="max-width: 490px; line-height: 1.7;">
+          Những chiếc bánh được chế tác tỉ mỉ, kết hợp hài hòa giữa hương vị và nghệ thuật,
+          mang đến trải nghiệm ẩm thực đẳng cấp cho mọi khoảnh khắc đáng nhớ.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('store.products') }}" class="btn btn-yuu px-4 py-2">
+            <i class="bi bi-bag-heart me-2"></i>Đặt hàng ngay
+          </a>
+          <a href="{{ url_for('store.about') }}" class="btn btn-yuu-outline px-4 py-2">
+            Tìm hiểu YuuCake
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center">
+        <img src="{{ url_for('static', filename='images/products/sinh-nhat-3.avif') }}"
+             alt="Bánh mousse sô-cô-la Yuu Cake" class="img-fluid yuu-showcase-img">
+      </div>
+    </div>
+  </div>
+</section>
+
+{# === 4. DANH MỤC SẢN PHẨM (00:09 - 00:13) === #}
+<section class="yuu-section">
+  <div class="container">
+    <div class="text-center">
+      <h2 class="yuu-section-title">Danh mục sản phẩm</h2>
+      <p class="yuu-section-sub">Các sản phẩm mà YuuCake cung cấp cho khách hàng ({{ total_categories }} danh mục · {{ total_products }} món)</p>
+    </div>
+
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-3 justify-content-center">
+      {% for cat in categories %}
+        <div class="col">
+          <a href="{{ url_for('store.products', category=cat.slug) }}" class="yuu-cat-card">
+            <div class="yuu-cat-img-box">
+              <img src="{{ url_for('static', filename=cat.image) }}" alt="{{ cat.name }}">
+            </div>
+            <div class="yuu-cat-name">{{ cat.name }}</div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{# === 5. SẢN PHẨM NỔI BẬT (00:13 - 00:16) === #}
+<section class="yuu-section pt-2">
+  <div class="container">
+    <div class="text-center">
+      <h2 class="yuu-section-title">Sản phẩm nổi bật</h2>
+      <p class="yuu-section-sub">Một số sản phẩm bán chạy trên YuuCake</p>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-4">
+      {% for product in featured_products %}
+        <div class="col">
+          <div class="yuu-product-card">
+            <a href="{{ url_for('store.product_detail', product_id=product.id) }}" class="yuu-product-thumb">
+              <img src="{{ url_for('static', filename=product.image) }}" alt="{{ product.name }}">
+            </a>
+
+            <a href="{{ url_for('store.product_detail', product_id=product.id) }}" class="yuu-product-title">
+              {{ product.name }}
+            </a>
+            <p class="yuu-product-desc">{{ product.short_desc }}</p>
+
+            <div class="d-flex justify-content-between align-items-center mb-3 mt-auto">
+              {# Sử dụng custom filter |vnd định nghĩa ở Chương 4 #}
+              <span class="yuu-price">{{ product.price | vnd }}</span>
+              {% if product.stock > 0 %}
+                <span class="small text-muted">Còn {{ product.stock }}</span>
+              {% else %}
+                <span class="badge text-bg-secondary">Hết hàng</span>
+              {% endif %}
+            </div>
+
+            {# Form POST thêm vào giỏ hàng kèm CSRF token (Chương 5) #}
+            {% if product.stock > 0 %}
+              <form action="{{ url_for('cart.add_to_cart', product_id=product.id) }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="quantity" value="1">
+                <input type="hidden" name="next" value="{{ request.full_path }}">
+                <button type="submit" class="btn btn-yuu w-100">
+                  <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ
+                </button>
+              </form>
+            {% else %}
+              <button type="button" class="btn btn-secondary w-100" disabled>Hết hàng</button>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+      <a href="{{ url_for('store.products') }}" class="btn btn-yuu-outline px-4 py-2">
+        Xem toàn bộ thực đơn <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+{# === 6. BLOG (00:16 - 00:21) === #}
+<section class="yuu-section pt-2">
+  <div class="container" style="max-width: 980px;">
+    <div class="text-center">
+      <h2 class="yuu-section-title">Blog</h2>
+      <p class="yuu-section-sub">Tin tức ưu đãi và bí quyết làm bánh từ góc bếp YuuCake</p>
+    </div>
+
+    <div class="d-flex flex-column gap-4">
+      {% for post in latest_posts %}
+        <article class="yuu-blog-card">
+          <div class="row g-0 align-items-center">
+            <div class="col-md-5">
+              <a href="{{ url_for('store.blog_detail', slug=post.slug) }}">
+                <img src="{{ url_for('static', filename=post.image) }}" alt="{{ post.title }}" class="yuu-blog-thumb">
+              </a>
+            </div>
+            <div class="col-md-7">
+              <div class="p-4">
+                <span class="yuu-tag-pill mb-2">{{ post.category_label }}</span>
+                <h3 class="h5 fw-bold mt-2 mb-2">
+                  <a href="{{ url_for('store.blog_detail', slug=post.slug) }}" class="text-decoration-none text-dark">
+                    {{ post.title }}
+                  </a>
+                </h3>
+                <p class="text-muted small mb-3" style="line-height: 1.65;">{{ post.excerpt }}</p>
+                <div class="d-flex align-items-center gap-2 small text-muted">
+                  <span class="rounded-circle d-inline-flex align-items-center justify-content-center text-white"
+                        style="width: 28px; height: 28px; background-color: var(--yuu-brown);">
+                    <i class="bi bi-cake2-fill" style="font-size: 0.78rem;"></i>
+                  </span>
+                  <span>YuuCake · {{ post.published_at | date_vn }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+      <a href="{{ url_for('store.blog_list') }}" class="btn btn-yuu px-4 py-2">Xem tất cả</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

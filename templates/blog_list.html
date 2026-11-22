@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Bài viết{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 980px;">
+  <div class="text-center mb-4">
+    <h1 class="yuu-section-title">Blog YuuCake</h1>
+    <p class="text-muted">Chia sẻ công thức làm bánh, mẹo bảo quản và tin khuyến mãi mới nhất</p>
+
+    <div class="d-flex flex-wrap justify-content-center gap-2 mt-3">
+      <a href="{{ url_for('store.blog_list') }}"
+         class="btn btn-sm {% if not active_tag %}btn-yuu{% else %}btn-yuu-outline{% endif %}">Tất cả</a>
+      {% for t in tags %}
+        <a href="{{ url_for('store.blog_list', tag=t) }}"
+           class="btn btn-sm {% if active_tag == t %}btn-yuu{% else %}btn-yuu-outline{% endif %}">{{ t }}</a>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="d-flex flex-column gap-4">
+    {% for post in posts %}
+      <article class="yuu-blog-card">
+        <div class="row g-0 align-items-center">
+          <div class="col-md-5">
+            <a href="{{ url_for('store.blog_detail', slug=post.slug) }}">
+              <img src="{{ url_for('static', filename=post.image) }}" alt="{{ post.title }}" class="yuu-blog-thumb">
+            </a>
+          </div>
+          <div class="col-md-7">
+            <div class="p-4">
+              <span class="yuu-tag-pill">{{ post.category_label }}</span>
+              <h2 class="h5 fw-bold mt-2 mb-2">
+                <a href="{{ url_for('store.blog_detail', slug=post.slug) }}" class="text-decoration-none text-dark">
+                  {{ post.title }}
+                </a>
+              </h2>
+              <p class="text-muted small mb-3">{{ post.excerpt }}</p>
+              <div class="d-flex justify-content-between align-items-center small text-muted">
+                <span><i class="bi bi-calendar3 me-1"></i>{{ post.published_at | date_vn }}</span>
+                <a href="{{ url_for('store.blog_detail', slug=post.slug) }}" class="fw-semibold text-decoration-none" style="color: var(--yuu-brown);">
+                  Đọc tiếp <i class="bi bi-arrow-right"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
