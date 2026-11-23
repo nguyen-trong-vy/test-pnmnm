@@ -104,3 +104,70 @@ class CheckoutForm(FlaskForm):
         validators=[DataRequired(message="Vui lòng chọn phương thức thanh toán.")],
     )
     submit = SubmitField("Xác nhận đặt hàng")
+
+
+class ProductAdminForm(FlaskForm):
+    """
+    Biểu mẫu Thêm và Sửa sản phẩm dành cho Quản trị viên (Màn hình ⑧).
+    Kiến thức Chương 5:
+    - Bắt lỗi dữ liệu bằng WTForms validators (DataRequired, NumberRange, Length).
+    - Hỗ trợ tải tệp ảnh lên bằng FileField và kiểm tra đuôi mở rộng bằng FileAllowed.
+    - SelectField nạp danh mục động từ CSDL.
+    """
+
+    name = StringField(
+        "Tên sản phẩm bánh",
+        validators=[
+            DataRequired(message="Vui lòng nhập tên sản phẩm bánh."),
+            Length(min=2, max=150, message="Tên bánh phải từ 2 đến 150 ký tự."),
+        ],
+    )
+    category_id = SelectField(
+        "Danh mục bánh",
+        coerce=int,
+        validators=[DataRequired(message="Vui lòng chọn danh mục cho bánh.")],
+    )
+    price = IntegerField(
+        "Giá bán (VNĐ)",
+        validators=[
+            DataRequired(message="Vui lòng nhập giá bán."),
+            NumberRange(min=1000, max=50_000_000, message="Giá bán phải từ 1.000 đ trở lên."),
+        ],
+    )
+    stock = IntegerField(
+        "Số lượng tồn kho",
+        default=10,
+        validators=[
+            DataRequired(message="Vui lòng nhập số lượng tồn kho."),
+            NumberRange(min=0, max=10000, message="Số lượng tồn kho phải lớn hơn hoặc bằng 0."),
+        ],
+    )
+    is_featured = BooleanField(
+        "Đánh dấu là Sản phẩm nổi bật (Hiển thị tại trang chủ)"
+    )
+    short_desc = StringField(
+        "Mô tả tóm tắt",
+        validators=[
+            DataRequired(message="Vui lòng nhập mô tả tóm tắt."),
+            Length(max=255, message="Mô tả tóm tắt tối đa 255 ký tự."),
+        ],
+    )
+    description = TextAreaField(
+        "Mô tả chi tiết nguyên liệu & hương vị",
+        validators=[
+            DataRequired(message="Vui lòng nhập mô tả chi tiết."),
+            Length(min=10, max=5000, message="Mô tả chi tiết cần tối thiểu 10 ký tự."),
+        ],
+    )
+    image_file = FileField(
+        "Tải lên tệp ảnh bánh mới (jpg, png, avif, webp)",
+        validators=[
+            Optional(),
+            FileAllowed(["jpg", "jpeg", "png", "avif", "webp"], "Chỉ chấp nhận tệp ảnh (.jpg, .png, .avif, .webp)!"),
+        ],
+    )
+    existing_image = StringField(
+        "Hoặc đường dẫn ảnh nội bộ (vd: images/products/sinh-nhat-1.avif)",
+        validators=[Optional(), Length(max=255)],
+    )
+    submit = SubmitField("Lưu sản phẩm")
