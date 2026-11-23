@@ -18,6 +18,7 @@ from sqlalchemy import select
 from config import Config
 from extensions import csrf, db, migrate
 from models import Category
+from routes.admin import admin_bp
 from routes.api import api_bp
 from routes.cart import cart_bp
 from routes.checkout import checkout_bp
@@ -81,6 +82,7 @@ def create_app(config_class=Config) -> Flask:
     app.register_blueprint(cart_bp)
     app.register_blueprint(checkout_bp)
     app.register_blueprint(api_bp)
+    app.register_blueprint(admin_bp)
     register_error_handlers(app)
 
     # --- Chương 3 & 6: Lệnh Flask CLI tuỳ biến ---

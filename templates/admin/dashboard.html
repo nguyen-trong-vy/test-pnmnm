@@ -1,0 +1,238 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Tổng quan kinh doanh{% endblock %}
+{% block page_title %}Bảng điều khiển kinh doanh{% endblock %}
+
+{% block admin_content %}
+{# === 1. HÀNG 4 THẺ THỐNG KÊ TỔNG QUAN (Chương 6: func.count, func.sum) === #}
+<div class="row g-3 mb-4">
+  {# Thẻ 1: Doanh thu #}
+  <div class="col-sm-6 col-xl-3">
+    <div class="yuu-admin-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold text-uppercase">Tổng doanh thu</span>
+        <div class="yuu-stat-icon bg-success-subtle text-success">
+          <i class="bi bi-cash-stack fs-5"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1" style="color: var(--yuu-brown);">{{ revenue_all | vnd }}</h3>
+      <p class="text-muted small mb-0">
+        <i class="bi bi-check2-circle text-success me-1"></i>Đã thu thực tế: <strong>{{ revenue_completed | vnd }}</strong>
+      </p>
+    </div>
+  </div>
+
+  {# Thẻ 2: Tổng đơn hàng #}
+  <div class="col-sm-6 col-xl-3">
+    <div class="yuu-admin-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold text-uppercase">Đơn đặt hàng</span>
+        <div class="yuu-stat-icon bg-primary-subtle text-primary">
+          <i class="bi bi-receipt-cutoff fs-5"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1 text-primary">{{ total_orders }} <span class="fs-6 fw-normal text-muted">đơn</span></h3>
+      <p class="text-muted small mb-0">
+        {% if orders_pending > 0 %}
+          <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>{{ orders_pending }} đơn chờ duyệt</span>
+        {% else %}
+          <span class="text-success small"><i class="bi bi-check-all me-1"></i>Đã xử lý hết đơn mới</span>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  {# Thẻ 3: Sản phẩm bánh #}
+  <div class="col-sm-6 col-xl-3">
+    <div class="yuu-admin-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold text-uppercase">Sản phẩm đang bán</span>
+        <div class="yuu-stat-icon text-warning" style="background-color: #fff3cd;">
+          <i class="bi bi-cake2 fs-5"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1" style="color: var(--yuu-accent);">{{ total_products }} <span class="fs-6 fw-normal text-muted">món</span></h3>
+      <p class="text-muted small mb-0">
+        <i class="bi bi-folder2 me-1"></i>Trong <strong>{{ total_categories }}</strong> danh mục bánh
+      </p>
+    </div>
+  </div>
+
+  {# Thẻ 4: Cảnh báo tồn kho #}
+  <div class="col-sm-6 col-xl-3">
+    <div class="yuu-admin-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-muted small fw-semibold text-uppercase">Cảnh báo tồn kho</span>
+        <div class="yuu-stat-icon bg-danger-subtle text-danger">
+          <i class="bi bi-exclamation-triangle fs-5"></i>
+        </div>
+      </div>
+      <h3 class="fw-bold mb-1 text-danger">{{ low_stock_products|length }} <span class="fs-6 fw-normal text-muted">bánh cần nhập</span></h3>
+      <p class="text-muted small mb-0">
+        {% if out_of_stock_count > 0 %}
+          <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>{{ out_of_stock_count }} bánh đã hết hàng</span>
+        {% else %}
+          <span class="text-muted small">Tất cả bánh đều còn hàng</span>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+
+{# === 2. TIẾN ĐỘ XỬ LÝ ĐƠN THEO TRẠNG THÁI === #}
+<div class="row g-3 mb-4">
+  <div class="col-12">
+    <div class="yuu-admin-card p-3">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h6 class="fw-bold mb-0 text-dark">
+          <i class="bi bi-bar-chart-steps me-2" style="color: var(--yuu-brown);"></i>Phân bố đơn hàng theo trạng thái
+        </h6>
+        <span class="text-muted small">Cập nhật tự động thời gian thực</span>
+      </div>
+
+      <div class="row g-2 text-center">
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded-3 border bg-light">
+            <span class="badge text-bg-warning mb-1">Chờ xác nhận</span>
+            <div class="h5 fw-bold mb-0">{{ orders_pending }}</div>
+            <div class="small text-muted">Cần liên hệ khách</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded-3 border bg-light">
+            <span class="badge text-bg-primary mb-1">Đang giao</span>
+            <div class="h5 fw-bold mb-0 text-primary">{{ orders_shipping }}</div>
+            <div class="small text-muted">Shipper đang chuyển</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded-3 border bg-light">
+            <span class="badge text-bg-success mb-1">Hoàn tất</span>
+            <div class="h5 fw-bold mb-0 text-success">{{ orders_completed }}</div>
+            <div class="small text-muted">Đã giao thành công</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-2 rounded-3 border bg-light">
+            <span class="badge text-bg-secondary mb-1">Đã huỷ</span>
+            <div class="h5 fw-bold mb-0 text-secondary">{{ orders_cancelled }}</div>
+            <div class="small text-muted">Huỷ bởi khách / shop</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# === 3. HÀNG CHI TIẾT: 5 ĐƠN MỚI NHẤT & BÁNH CẢNH BÁO KHO === #}
+<div class="row g-4">
+  {# Cột trái: 5 đơn mới nhất #}
+  <div class="col-lg-8">
+    <div class="yuu-admin-card h-100">
+      <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0" style="color: var(--yuu-brown);">
+          <i class="bi bi-clock-history me-2 text-primary"></i>5 đơn đặt hàng mới nhất
+        </h6>
+        <a href="#" class="btn btn-sm btn-link text-decoration-none">
+          Xem tất cả <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small">
+            <tr>
+              <th scope="col" class="ps-3">Mã đơn</th>
+              <th scope="col">Khách hàng</th>
+              <th scope="col">Thời gian</th>
+              <th scope="col">Tổng tiền</th>
+              <th scope="col">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for o in recent_orders %}
+              <tr>
+                <td class="ps-3 fw-bold text-muted">#{{ o.id }}</td>
+                <td>
+                  <div class="fw-semibold text-dark">{{ o.customer_name }}</div>
+                  <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ o.phone }}</div>
+                </td>
+                <td class="small text-muted">
+                  {{ o.created_at | date_vn(with_time=True) }}
+                </td>
+                <td class="fw-bold" style="color: var(--yuu-brown);">
+                  {{ o.total_amount | vnd }}
+                </td>
+                <td>
+                  {% if o.status == ORDER_STATUS_PENDING %}
+                    <span class="badge text-bg-warning"><i class="bi bi-clock me-1"></i>Chờ xác nhận</span>
+                  {% elif o.status == ORDER_STATUS_SHIPPING %}
+                    <span class="badge text-bg-primary"><i class="bi bi-truck me-1"></i>Đang giao</span>
+                  {% elif o.status == ORDER_STATUS_COMPLETED %}
+                    <span class="badge text-bg-success"><i class="bi bi-check-circle me-1"></i>Hoàn tất</span>
+                  {% else %}
+                    <span class="badge text-bg-secondary">Đã huỷ</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center py-4 text-muted">
+                  <i class="bi bi-inbox fs-2 d-block mb-1 text-muted"></i>
+                  Chưa có đơn đặt hàng nào trong hệ thống.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {# Cột phải: Bánh sắp hết hàng (stock <= 5) #}
+  <div class="col-lg-4">
+    <div class="yuu-admin-card h-100">
+      <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0 text-danger">
+          <i class="bi bi-box-seam me-2"></i>Cảnh báo tồn kho (&le; 5)
+        </h6>
+        <span class="badge bg-danger-subtle text-danger fw-bold">{{ low_stock_products|length }} món</span>
+      </div>
+
+      <div class="p-3">
+        {% if low_stock_products %}
+          <div class="d-flex flex-column gap-3">
+            {% for p in low_stock_products %}
+              <div class="d-flex align-items-center justify-content-between p-2 rounded-3 border bg-light">
+                <div class="d-flex align-items-center gap-2">
+                  <img src="{{ url_for('static', filename=p.image) }}" alt="{{ p.name }}"
+                       class="rounded-2 object-fit-cover" style="width: 44px; height: 44px;">
+                  <div>
+                    <div class="fw-semibold text-truncate small" style="max-width: 150px;" title="{{ p.name }}">
+                      {{ p.name }}
+                    </div>
+                    <div class="small text-muted">{{ p.price | vnd }}</div>
+                  </div>
+                </div>
+
+                <div>
+                  {% if p.stock == 0 %}
+                    <span class="badge bg-danger">Hết hàng</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Còn {{ p.stock }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-check-circle text-success fs-2 d-block mb-1"></i>
+            Tất cả sản phẩm đều đảm bảo lượng tồn kho dồi dào.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
