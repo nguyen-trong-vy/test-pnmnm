@@ -93,6 +93,17 @@ Pipeline **GitHub Actions CI** (`.github/workflows/ci.yml`) sẽ tự động k�
 
 ---
 
-## 4. Tài liệu học phần & Vấn đáp
-- `docs/GIAI_THICH_KIEN_THUC.md`: Đối chiếu từng tính năng với chuẩn kiến thức Chương 3, 4, 5, 6 và hướng dẫn giải thích code khi thầy cô vấn đáp.
-- `docs/LO_TRINH_COMMIT_VA_VAN_DAP.md`: Lộ trình chi tiết từng Pull Request và bộ câu hỏi vấn đáp trọng tâm.
+## 4. Quản trị dự án & Bộ tài liệu mã nguồn mở
+
+Dự án tuân thủ đầy đủ các chuẩn mực quản trị mã nguồn mở (Open Source Governance):
+- [LICENSE](LICENSE): Giấy phép phần mềm mã nguồn mở MIT License.
+- [CONTRIBUTING.md](CONTRIBUTING.md): Hướng dẫn quy chuẩn đóng góp, quy tắc phân nhánh Git Flow và kiểm thử tự động.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): Bộ quy tắc ứng xử cộng đồng văn minh và tôn trọng lẫn nhau.
+- [SECURITY.md](SECURITY.md): Chính sách bảo mật và kênh tiếp nhận báo cáo lỗ hổng an toàn.
+
+Hệ thống tài liệu chuyên sâu tại thư mục `docs/`:
+- [docs/LAP_LUAN_CHON_GIAY_PHEP.md](docs/LAP_LUAN_CHON_GIAY_PHEP.md): Báo cáo so sánh và lập luận lý do chọn giấy phép MIT.
+- [docs/TAI_LIEU_NGUOI_DUNG.md](docs/TAI_LIEU_NGUOI_DUNG.md): Hướng dẫn sử dụng chi tiết dành cho Khách hàng & Quản trị viên.
+- [docs/TAI_LIEU_PHAT_TRIEN.md](docs/TAI_LIEU_PHAT_TRIEN.md): Hướng dẫn kiến trúc, thiết kế CSDL và mở rộng cho lập trình viên.
+- [docs/GIAI_THICH_KIEN_THUC.md](docs/GIAI_THICH_KIEN_THUC.md): Đối chiếu từng tính năng với chuẩn kiến thức Chương 3, 4, 5, 6.
+- [docs/LO_TRINH_COMMIT_VA_VAN_DAP.md](docs/LO_TRINH_COMMIT_VA_VAN_DAP.md): Lộ trình chi tiết 16 Pull Requests và bộ câu hỏi vấn đáp.
