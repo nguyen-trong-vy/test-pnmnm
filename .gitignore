@@ -14,6 +14,13 @@ instance/
 *.sqlite3
 .env
 
+# Pytest & Coverage
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
 # File hệ điều hành và IDE
 .DS_Store
 Thumbs.db
