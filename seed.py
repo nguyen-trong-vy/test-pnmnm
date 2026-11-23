@@ -9,7 +9,24 @@ from datetime import datetime
 from sqlalchemy import func, select
 
 from extensions import db
-from models import BlogPost, Category, Product
+from models import BlogPost, Category, Product, User
+
+
+def seed_admin_user() -> bool:
+    """Nạp tài khoản Admin mặc định (admin / admin123) nếu chưa có trong CSDL."""
+    admin_exists = db.session.scalar(select(User).where(User.username == "admin"))
+    if not admin_exists:
+        admin = User(
+            username="admin",
+            email="admin@yuucake.vn",
+            full_name="Quản trị viên Yuu Cake",
+            role="admin",
+        )
+        admin.set_password("admin123")
+        db.session.add(admin)
+        db.session.commit()
+        return True
+    return False
 
 
 def seed_database() -> dict:
@@ -18,6 +35,7 @@ def seed_database() -> dict:
     Trả về dict thống kê số bản ghi hiện có trong CSDL.
     """
     existing_categories = db.session.scalar(select(func.count(Category.id))) or 0
+    seed_admin_user()
     if existing_categories > 0:
         return {
             "seeded": False,
