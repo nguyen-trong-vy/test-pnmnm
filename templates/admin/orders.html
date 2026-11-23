@@ -1,0 +1,167 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Quản lý đơn hàng{% endblock %}
+{% block page_title %}Danh sách đơn đặt hàng{% endblock %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item active" aria-current="page">Đơn hàng</li>
+{% endblock %}
+
+{% block admin_content %}
+{# 1. CÁC TAB LỌC TRẠNG THÁI NHANH #}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+  <ul class="nav nav-pills small">
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == 'all' %}active bg-dark{% else %}text-muted{% endif %}"
+         href="{{ url_for('admin.orders', status='all', q=q) }}">
+        Tất cả <span class="badge bg-secondary ms-1">{{ count_all }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == ORDER_STATUS_PENDING %}active bg-warning text-dark fw-bold{% else %}text-muted{% endif %}"
+         href="{{ url_for('admin.orders', status=ORDER_STATUS_PENDING, q=q) }}">
+        Chờ xác nhận <span class="badge text-bg-warning ms-1">{{ count_pending }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == ORDER_STATUS_SHIPPING %}active bg-primary{% else %}text-muted{% endif %}"
+         href="{{ url_for('admin.orders', status=ORDER_STATUS_SHIPPING, q=q) }}">
+        Đang giao <span class="badge text-bg-primary ms-1">{{ count_shipping }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == ORDER_STATUS_COMPLETED %}active bg-success{% else %}text-muted{% endif %}"
+         href="{{ url_for('admin.orders', status=ORDER_STATUS_COMPLETED, q=q) }}">
+        Hoàn tất <span class="badge text-bg-success ms-1">{{ count_completed }}</span>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if selected_status == ORDER_STATUS_CANCELLED %}active bg-secondary{% else %}text-muted{% endif %}"
+         href="{{ url_for('admin.orders', status=ORDER_STATUS_CANCELLED, q=q) }}">
+        Đã huỷ <span class="badge text-bg-secondary ms-1">{{ count_cancelled }}</span>
+      </a>
+    </li>
+  </ul>
+
+  {# Thanh tìm kiếm mã đơn, tên, sđt #}
+  <form method="get" action="{{ url_for('admin.orders') }}" class="d-flex gap-2" style="max-width: 320px;">
+    <input type="hidden" name="status" value="{{ selected_status }}">
+    <div class="input-group input-group-sm">
+      <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+      <input type="text" name="q" value="{{ q }}" class="form-control"
+             placeholder="Tìm mã đơn, tên, SĐT...">
+      <button type="submit" class="btn btn-yuu">Tìm</button>
+    </div>
+  </form>
+</div>
+
+{# 2. BẢNG DANH SÁCH ĐƠN HÀNG #}
+<div class="yuu-admin-card overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small">
+        <tr>
+          <th scope="col" class="ps-3" style="width: 70px;">Mã đơn</th>
+          <th scope="col">Khách hàng</th>
+          <th scope="col">Ngày đặt</th>
+          <th scope="col">Địa chỉ nhận hàng</th>
+          <th scope="col">Thanh toán</th>
+          <th scope="col">Tổng tiền</th>
+          <th scope="col">Trạng thái</th>
+          <th scope="col" class="text-end pe-3" style="width: 120px;">Chi tiết</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in orders %}
+          <tr>
+            <td class="ps-3 fw-bold text-muted">#{{ o.id }}</td>
+            <td>
+              <div class="fw-semibold text-dark">{{ o.customer_name }}</div>
+              <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ o.phone }}</div>
+            </td>
+            <td class="small text-muted">
+              {{ o.created_at | date_vn(with_time=True) }}
+            </td>
+            <td>
+              <div class="small text-truncate" style="max-width: 250px;" title="{{ o.address }}">
+                {{ o.address }}
+              </div>
+            </td>
+            <td>
+              <span class="badge text-bg-light border text-muted small">
+                {{ o.payment_label }}
+              </span>
+            </td>
+            <td class="fw-bold" style="color: var(--yuu-brown);">
+              {{ o.total_amount | vnd }}
+            </td>
+            <td>
+              {% if o.status == ORDER_STATUS_PENDING %}
+                <span class="badge text-bg-warning"><i class="bi bi-clock me-1"></i>Chờ xác nhận</span>
+              {% elif o.status == ORDER_STATUS_SHIPPING %}
+                <span class="badge text-bg-primary"><i class="bi bi-truck me-1"></i>Đang giao</span>
+              {% elif o.status == ORDER_STATUS_COMPLETED %}
+                <span class="badge text-bg-success"><i class="bi bi-check-circle me-1"></i>Hoàn tất</span>
+              {% else %}
+                <span class="badge text-bg-secondary"><i class="bi bi-x-circle me-1"></i>Đã huỷ</span>
+              {% endif %}
+            </td>
+            <td class="text-end pe-3">
+              <a href="{{ url_for('admin.order_detail', order_id=o.id) }}"
+                 class="btn btn-sm btn-yuu px-2 py-1 shadow-sm" title="Xem chi tiết đơn và cập nhật trạng thái">
+                Xem &amp; Xử lý <i class="bi bi-arrow-right-short"></i>
+              </a>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="8" class="text-center py-5 text-muted">
+              <i class="bi bi-receipt fs-1 d-block mb-2 text-muted"></i>
+              Không tìm thấy đơn đặt hàng nào phù hợp với bộ lọc hiện tại.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Phân trang #}
+  {% if pagination.pages > 1 %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+      <div class="small text-muted">
+        Trang {{ pagination.page }} / {{ pagination.pages }} (Tổng cộng {{ pagination.total }} đơn)
+      </div>
+      <nav aria-label="Phân trang đơn hàng">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link"
+               href="{{ url_for('admin.orders', page=pagination.prev_num, q=q, status=selected_status) }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+
+          {% for p_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p_num %}
+              <li class="page-item {% if p_num == pagination.page %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('admin.orders', page=p_num, q=q, status=selected_status) }}">
+                  {{ p_num }}
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+
+          <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link"
+               href="{{ url_for('admin.orders', page=pagination.next_num, q=q, status=selected_status) }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -51,7 +51,7 @@
           <span>Danh mục</span>
         </a>
 
-        <a href="#"
+        <a href="{{ url_for('admin.orders') }}"
            class="yuu-admin-nav-item {% if request.endpoint in ['admin.orders', 'admin.order_detail'] %}active{% endif %}">
           <i class="bi bi-receipt me-2"></i>
           <span>Đơn đặt hàng</span>

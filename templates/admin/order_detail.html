@@ -1,0 +1,232 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Chi tiết đơn hàng #{{ order.id }}{% endblock %}
+{% block page_title %}Đơn đặt hàng #{{ order.id }}{% endblock %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="{{ url_for('admin.orders') }}" class="text-muted text-decoration-none">Đơn hàng</a></li>
+  <li class="breadcrumb-item active" aria-current="page">Chi tiết #{{ order.id }}</li>
+{% endblock %}
+
+{% block admin_content %}
+{# HÀNG NÚT THAO TÁC TRÊN ĐẦU #}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+  <div class="d-flex align-items-center gap-2">
+    <span class="text-muted small">Ngày đặt: <strong>{{ order.created_at | date_vn(with_time=True) }}</strong></span>
+    <span class="mx-1 text-muted">&middot;</span>
+    {% if order.status == ORDER_STATUS_PENDING %}
+      <span class="badge text-bg-warning px-3 py-1 fs-6"><i class="bi bi-clock me-1"></i>Chờ xác nhận</span>
+    {% elif order.status == ORDER_STATUS_SHIPPING %}
+      <span class="badge text-bg-primary px-3 py-1 fs-6"><i class="bi bi-truck me-1"></i>Đang giao</span>
+    {% elif order.status == ORDER_STATUS_COMPLETED %}
+      <span class="badge text-bg-success px-3 py-1 fs-6"><i class="bi bi-check-circle me-1"></i>Hoàn tất</span>
+    {% else %}
+      <span class="badge text-bg-secondary px-3 py-1 fs-6"><i class="bi bi-x-circle me-1"></i>Đã huỷ</span>
+    {% endif %}
+  </div>
+
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('checkout.export_order_csv', order_id=order.id) }}"
+       class="btn btn-sm btn-outline-success">
+      <i class="bi bi-file-earmark-spreadsheet me-1"></i>Xuất hoá đơn CSV
+    </a>
+    <button type="button" onclick="window.print()" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-printer me-1"></i>In đơn
+    </button>
+    <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-dark">
+      <i class="bi bi-arrow-left me-1"></i>Quay lại
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  {# CỘT TRÁI (8 COLS): MÓN BÁNH ĐÃ ĐẶT & DÒNG THỜI GIAN LỊCH SỬ #}
+  <div class="col-lg-8">
+    {# Card 1: Chi tiết các món bánh #}
+    <div class="yuu-admin-card mb-4 overflow-hidden">
+      <div class="p-3 border-bottom bg-light">
+        <h6 class="fw-bold mb-0" style="color: var(--yuu-brown);">
+          <i class="bi bi-basket me-2"></i>Chi tiết các món bánh đã đặt ({{ order.items|length }} món)
+        </h6>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead class="small text-muted bg-white">
+            <tr>
+              <th scope="col" class="ps-3">Sản phẩm</th>
+              <th scope="col" class="text-center">Đơn giá lúc đặt</th>
+              <th scope="col" class="text-center">Số lượng</th>
+              <th scope="col" class="text-end pe-3">Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items %}
+              <tr>
+                <td class="ps-3">
+                  <div class="d-flex align-items-center gap-3">
+                    {% if item.product and item.product.image %}
+                      <img src="{{ url_for('static', filename=item.product.image) }}" alt="{{ item.product_name }}"
+                           class="rounded-2 border object-fit-cover shadow-sm" style="width: 48px; height: 48px;">
+                    {% else %}
+                      <div class="rounded-2 border bg-light d-flex align-items-center justify-content-center"
+                           style="width: 48px; height: 48px;">
+                        <i class="bi bi-cake2 text-muted"></i>
+                      </div>
+                    {% endif %}
+                    <div>
+                      <div class="fw-semibold text-dark">{{ item.product_name }}</div>
+                      {% if item.product %}
+                        <a href="{{ url_for('store.product_detail', product_id=item.product.id) }}" target="_blank"
+                           class="text-decoration-none small text-muted">
+                          Xem trang sản phẩm <i class="bi bi-box-arrow-up-right" style="font-size: 0.7rem;"></i>
+                        </a>
+                      {% endif %}
+                    </div>
+                  </div>
+                </td>
+                <td class="text-center text-muted">
+                  {{ item.unit_price | vnd }}
+                </td>
+                <td class="text-center fw-bold">
+                  &times; {{ item.quantity }}
+                </td>
+                <td class="text-end pe-3 fw-bold" style="color: var(--yuu-brown);">
+                  {{ item.line_total | vnd }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="border-top">
+            <tr>
+              <td colspan="3" class="text-end text-muted small ps-3">Tạm tính tiền bánh:</td>
+              <td class="text-end pe-3 fw-semibold">{{ order.subtotal | vnd }}</td>
+            </tr>
+            <tr>
+              <td colspan="3" class="text-end text-muted small ps-3">Phí vận chuyển giao hàng:</td>
+              <td class="text-end pe-3 fw-semibold">
+                {% if order.shipping_fee > 0 %}
+                  {{ order.shipping_fee | vnd }}
+                {% else %}
+                  <span class="text-success">Miễn phí giao hàng</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr class="table-light">
+              <td colspan="3" class="text-end fw-bold ps-3 fs-6" style="color: var(--yuu-brown);">Tổng cộng thanh toán:</td>
+              <td class="text-end pe-3 fw-bold fs-5" style="color: var(--yuu-brown);">
+                {{ order.total_amount | vnd }}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    {# Card 2: Lịch sử mốc thời gian chuyển trạng thái (OrderStatusHistory) #}
+    <div class="yuu-admin-card p-4">
+      <h6 class="fw-bold mb-3" style="color: var(--yuu-brown);">
+        <i class="bi bi-clock-history me-2 text-primary"></i>Lịch sử trạng thái đơn hàng (Audit Trail)
+      </h6>
+
+      {% if order.history %}
+        <div class="position-relative ps-4 py-2 border-start border-2 border-primary-subtle ms-3">
+          {% for h in order.history %}
+            <div class="position-relative mb-3">
+              {# Chấm tròn trên timeline #}
+              <div class="position-absolute rounded-circle bg-primary"
+                   style="width: 12px; height: 12px; left: -31px; top: 4px; border: 2px solid #ffffff;"></div>
+
+              <div class="d-flex align-items-center gap-2">
+                {% if h.status == ORDER_STATUS_PENDING %}
+                  <span class="badge text-bg-warning">{{ h.status }}</span>
+                {% elif h.status == ORDER_STATUS_SHIPPING %}
+                  <span class="badge text-bg-primary">{{ h.status }}</span>
+                {% elif h.status == ORDER_STATUS_COMPLETED %}
+                  <span class="badge text-bg-success">{{ h.status }}</span>
+                {% else %}
+                  <span class="badge text-bg-secondary">{{ h.status }}</span>
+                {% endif %}
+
+                <span class="small text-muted">
+                  <i class="bi bi-clock me-1"></i>{{ h.changed_at | date_vn(with_time=True) }}
+                </span>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">Đơn hàng mới tạo, chưa có lịch sử thay đổi trạng thái.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  {# CỘT PHẢI (4 COLS): FORM CẬP NHẬT TRẠNG THÁI & THÔNG TIN KHÁCH HÀNG #}
+  <div class="col-lg-4">
+    {# Card 1: Form cập nhật trạng thái đơn hàng #}
+    <div class="yuu-admin-card p-3 mb-4">
+      <h6 class="fw-bold mb-3" style="color: var(--yuu-brown);">
+        <i class="bi bi-arrow-repeat me-2 text-warning"></i>Cập nhật trạng thái đơn
+      </h6>
+
+      <form method="post" action="{{ url_for('admin.order_detail', order_id=order.id) }}">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+          {{ form.status.label(class="form-label small fw-semibold") }}
+          {{ form.status(class="form-select form-select-sm" + (" is-invalid" if form.status.errors else "")) }}
+          {% for err in form.status.errors %}
+            <div class="invalid-feedback small">{{ err }}</div>
+          {% endfor %}
+          <div class="form-text small" style="font-size: 0.78rem;">
+            Khi cập nhật, hệ thống tự động ghi vết mốc thời gian vào bảng <code>OrderStatusHistory</code>.
+          </div>
+        </div>
+
+        <div class="d-grid">
+          {{ form.submit(class="btn btn-yuu btn-sm py-2 fw-semibold shadow-sm") }}
+        </div>
+      </form>
+    </div>
+
+    {# Card 2: Thông tin khách hàng #}
+    <div class="yuu-admin-card p-3">
+      <h6 class="fw-bold mb-3 pb-2 border-bottom" style="color: var(--yuu-brown);">
+        <i class="bi bi-person-lines-fill me-2 text-info"></i>Thông tin người nhận
+      </h6>
+
+      <ul class="list-unstyled small mb-0 d-flex flex-column gap-2">
+        <li>
+          <span class="text-muted d-block" style="font-size: 0.75rem;">HỌ VÀ TÊN</span>
+          <strong class="text-dark fs-6">{{ order.customer_name }}</strong>
+        </li>
+        <li>
+          <span class="text-muted d-block" style="font-size: 0.75rem;">SỐ ĐIỆN THOẠI</span>
+          <a href="tel:{{ order.phone }}" class="text-decoration-none fw-semibold text-primary">
+            <i class="bi bi-telephone me-1"></i>{{ order.phone }}
+          </a>
+        </li>
+        <li>
+          <span class="text-muted d-block" style="font-size: 0.75rem;">ĐỊA CHỈ EMAIL</span>
+          <span>{{ order.email or '— (Khách không cung cấp)' }}</span>
+        </li>
+        <li>
+          <span class="text-muted d-block" style="font-size: 0.75rem;">ĐỊA CHỈ GIAO BÁNH</span>
+          <span class="text-dark">{{ order.address }}</span>
+        </li>
+        <li>
+          <span class="text-muted d-block" style="font-size: 0.75rem;">GHI CHÚ ĐẶT BÁNH</span>
+          <span class="fst-italic text-muted">{{ order.note or 'Không có ghi chú' }}</span>
+        </li>
+        <li class="pt-2 border-top">
+          <span class="text-muted d-block" style="font-size: 0.75rem;">HÌNH THỨC THANH TOÁN</span>
+          <span class="badge text-bg-light border text-dark fw-semibold mt-1">
+            <i class="bi {% if order.payment_method == 'bank' %}bi-bank{% else %}bi-cash-coin{% endif %} me-1"></i>
+            {{ order.payment_label }}
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

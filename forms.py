@@ -207,3 +207,24 @@ class CategoryAdminForm(FlaskForm):
         validators=[Optional(), Length(max=255)],
     )
     submit = SubmitField("Lưu danh mục")
+
+
+class OrderStatusUpdateForm(FlaskForm):
+    """
+    Biểu mẫu cập nhật trạng thái đơn đặt hàng dành cho Quản trị viên (Màn hình ⑪).
+    Kiến thức Chương 5 & 6:
+    - Sử dụng SelectField với các hằng số trạng thái từ models.py.
+    - Cập nhật và ghi vết thời gian vào OrderStatusHistory.
+    """
+
+    status = SelectField(
+        "Trạng thái đơn hàng",
+        choices=[
+            (ORDER_STATUS_PENDING, ORDER_STATUS_PENDING),
+            (ORDER_STATUS_SHIPPING, ORDER_STATUS_SHIPPING),
+            (ORDER_STATUS_COMPLETED, ORDER_STATUS_COMPLETED),
+            (ORDER_STATUS_CANCELLED, ORDER_STATUS_CANCELLED),
+        ],
+        validators=[DataRequired(message="Vui lòng chọn trạng thái đơn hàng.")],
+    )
+    submit = SubmitField("Cập nhật trạng thái")
