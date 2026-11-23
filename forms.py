@@ -171,3 +171,39 @@ class ProductAdminForm(FlaskForm):
         validators=[Optional(), Length(max=255)],
     )
     submit = SubmitField("Lưu sản phẩm")
+
+
+class CategoryAdminForm(FlaskForm):
+    """
+    Biểu mẫu Thêm và Sửa danh mục bánh dành cho Quản trị viên (Màn hình ⑨).
+    Kiến thức Chương 5:
+    - Bắt lỗi dữ liệu bằng WTForms validators.
+    - Hỗ trợ tải tệp ảnh lên bằng FileField hoặc chọn ảnh nội bộ có sẵn.
+    """
+
+    name = StringField(
+        "Tên danh mục bánh",
+        validators=[
+            DataRequired(message="Vui lòng nhập tên danh mục."),
+            Length(min=2, max=100, message="Tên danh mục phải từ 2 đến 100 ký tự."),
+        ],
+    )
+    description = TextAreaField(
+        "Mô tả danh mục",
+        validators=[
+            Optional(),
+            Length(max=500, message="Mô tả danh mục tối đa 500 ký tự."),
+        ],
+    )
+    image_file = FileField(
+        "Tải lên ảnh danh mục mới (jpg, png, avif, webp)",
+        validators=[
+            Optional(),
+            FileAllowed(["jpg", "jpeg", "png", "avif", "webp"], "Chỉ chấp nhận tệp ảnh (.jpg, .png, .avif, .webp)!"),
+        ],
+    )
+    existing_image = StringField(
+        "Hoặc đường dẫn ảnh có sẵn (vd: images/categories/banh-donut.avif)",
+        validators=[Optional(), Length(max=255)],
+    )
+    submit = SubmitField("Lưu danh mục")

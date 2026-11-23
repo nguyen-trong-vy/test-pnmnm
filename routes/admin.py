@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, request, session, url_for, flash, 
 from sqlalchemy import func, select, or_
 from werkzeug.utils import secure_filename
 from extensions import db
-from forms import ProductAdminForm
+from forms import ProductAdminForm, CategoryAdminForm
 from models import Category, Order, Product, OrderItem, ORDER_STATUS_PENDING, ORDER_STATUS_SHIPPING, ORDER_STATUS_COMPLETED, ORDER_STATUS_CANCELLED
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
@@ -314,3 +314,220 @@ def product_delete(product_id: int):
     return redirect(url_for("admin.products"))
 
 
+# === MÀN HÌNH ⑨: QUẢN LÝ DANH MỤC SẢN PHẨM ===
+@admin_bp.route("/danh-muc", methods=["GET", "POST"])
+@admin_required
+def categories():
+    """
+    Màn hình ⑨: Quản lý danh mục bánh.
+    - Xem danh sách danh mục và số lượng bánh thuộc từng danh mục (outerjoin + func.count).
+    - Thêm danh mục mới hoặc chỉnh sửa danh mục hiện có (?edit=<id>).
+    """
+    edit_id = request.args.get("edit", type=int)
+    edit_cat = None
+    if edit_id:
+        edit_cat = db.session.get(Category, edit_id)
+
+    form = CategoryAdminForm(obj=edit_cat) if (edit_cat and request.method == "GET") else CategoryAdminForm()
+
+    if form.validate_on_submit():
+        base_slug = slugify_vn(form.name.data)
+
+        # Xử lý upload ảnh
+        image_path = edit_cat.image if edit_cat else "images/categories/banh-donut.avif"
+        file = form.image_file.data
+        if file and getattr(file, "filename", None):
+            ext = file.filename.rsplit(".", 1)[-1].lower() if "." in file.filename else "avif"
+            filename = f"cat_{base_slug[:30]}_{int(time.time())}.{ext}"
+            filename = secure_filename(filename)
+
+            upload_dir = Path(current_app.root_path) / "static" / "images" / "categories"
+            upload_dir.mkdir(parents=True, exist_ok=True)
+            file.save(upload_dir / filename)
+            image_path = f"images/categories/{filename}"
+        elif form.existing_image.data and form.existing_image.data.strip():
+            image_path = form.existing_image.data.strip()
+
+        if edit_cat:
+            slug = _unique_category_slug(base_slug, exclude_id=edit_cat.id)
+            edit_cat.name = form.name.data.strip()
+            edit_cat.slug = slug
+            edit_cat.description = form.description.data.strip() if form.description.data else ""
+            edit_cat.image = image_path
+            db.session.commit()
+            flash(f"Đã cập nhật danh mục '{edit_cat.name}' thành công!", "success")
+        else:
+            slug = _unique_category_slug(base_slug)
+            new_cat = Category(
+                name=form.name.data.strip(),
+                slug=slug,
+                description=form.description.data.strip() if form.description.data else "",
+                image=image_path,
+            )
+            db.session.add(new_cat)
+            db.session.commit()
+            flash(f"Đã thêm mới danh mục '{new_cat.name}' thành công!", "success")
+
+        return redirect(url_for("admin.categories"))
+
+    # Lấy danh sách kèm số lượng sản phẩm bằng outerjoin + group_by (Chương 6)
+    stmt = (
+        select(Category, func.count(Product.id).label("product_count"))
+        .outerjoin(Product, Category.id == Product.category_id)
+        .group_by(Category.id)
+        .order_by(Category.id.asc())
+    )
+    categories_with_count = db.session.execute(stmt).all()
+
+    return render_template(
+        "admin/categories.html",
+        categories_with_count=categories_with_count,
+        form=form,
+        edit_cat=edit_cat,
+    )
+
+
+@admin_bp.route("/danh-muc/xoa/<int:category_id>", methods=["POST"])
+@admin_required
+def category_delete(category_id: int):
+    """
+    Xoá danh mục an toàn:
+    - Kiểm tra xem danh mục còn sản phẩm bên trong không.
+    - Nếu còn: CHẶN xoá để đảm bảo toàn vẹn tham chiếu (Referential Integrity).
+    """
+    category = db.session.get(Category, category_id)
+    if not category:
+        flash("Danh mục không tồn tại.", "danger")
+        return redirect(url_for("admin.categories"))
+
+    product_count = db.session.scalar(
+        select(func.count(Product.id)).where(Product.category_id == category.id)
+    ) or 0
+
+    if product_count > 0:
+        flash(
+            f"Không thể xoá danh mục '{category.name}' vì đang có {product_count} sản phẩm bánh thuộc danh mục này. "
+            f"Vui lòng xoá hoặc chuyển các bánh sang danh mục khác trước.",
+            "warning",
+        )
+        return redirect(url_for("admin.categories"))
+
+    cat_name = category.name
+    db.session.delete(category)
+    db.session.commit()
+    flash(f"Đã xoá danh mục '{cat_name}' thành công.", "success")
+    return redirect(url_for("admin.categories"))
+
+
+# === MÀN HÌNH ⑩: DANH SÁCH ĐƠN ĐẶT HÀNG ===
+@admin_bp.route("/don-hang")
+@admin_required
+def orders():
+    """
+    Màn hình ⑩: Danh sách đơn hàng trong hệ thống.
+    - Tìm kiếm theo mã đơn, họ tên khách hoặc số điện thoại (?q=...)
+    - Lọc theo trạng thái (?status=all | Chờ xác nhận | Đang giao | Hoàn tất | Đã huỷ)
+    - Thống kê nhanh số lượng đơn theo từng trạng thái để làm các tab lọc
+    - Phân trang chuẩn db.paginate (10 đơn/trang)
+    """
+    q = request.args.get("q", "").strip()
+    status_filter = request.args.get("status", "all").strip()
+    page = request.args.get("page", 1, type=int)
+
+    count_all = db.session.scalar(select(func.count(Order.id))) or 0
+    count_pending = db.session.scalar(
+        select(func.count(Order.id)).where(Order.status == ORDER_STATUS_PENDING)
+    ) or 0
+    count_shipping = db.session.scalar(
+        select(func.count(Order.id)).where(Order.status == ORDER_STATUS_SHIPPING)
+    ) or 0
+    count_completed = db.session.scalar(
+        select(func.count(Order.id)).where(Order.status == ORDER_STATUS_COMPLETED)
+    ) or 0
+    count_cancelled = db.session.scalar(
+        select(func.count(Order.id)).where(Order.status == ORDER_STATUS_CANCELLED)
+    ) or 0
+
+    stmt = select(Order)
+
+    if q:
+        kw = f"%{q}%"
+        if q.isdigit():
+            stmt = stmt.where(or_(Order.id == int(q), Order.customer_name.ilike(kw), Order.phone.ilike(kw)))
+        else:
+            stmt = stmt.where(or_(Order.customer_name.ilike(kw), Order.phone.ilike(kw)))
+
+    if status_filter != "all" and status_filter:
+        stmt = stmt.where(Order.status == status_filter)
+
+    stmt = stmt.order_by(Order.created_at.desc())
+    pagination = db.paginate(stmt, page=page, per_page=10, error_out=False)
+
+    return render_template(
+        "admin/orders.html",
+        pagination=pagination,
+        orders=pagination.items,
+        q=q,
+        selected_status=status_filter,
+        count_all=count_all,
+        count_pending=count_pending,
+        count_shipping=count_shipping,
+        count_completed=count_completed,
+        count_cancelled=count_cancelled,
+        ORDER_STATUS_PENDING=ORDER_STATUS_PENDING,
+        ORDER_STATUS_SHIPPING=ORDER_STATUS_SHIPPING,
+        ORDER_STATUS_COMPLETED=ORDER_STATUS_COMPLETED,
+        ORDER_STATUS_CANCELLED=ORDER_STATUS_CANCELLED,
+    )
+
+
+# === MÀN HÌNH ⑪: CHI TIẾT ĐƠN HÀNG & CẬP NHẬT TRẠNG THÁI ===
+@admin_bp.route("/don-hang/<int:order_id>", methods=["GET", "POST"])
+@admin_required
+def order_detail(order_id: int):
+    """
+    Màn hình ⑪: Chi tiết đơn hàng và lịch sử chuyển trạng thái.
+    - Xem thông tin khách hàng, địa chỉ, phương thức thanh toán, danh sách OrderItem.
+    - Form cập nhật trạng thái đơn hàng (OrderStatusUpdateForm).
+    - Tự động ghi nhận mốc thời gian vào OrderStatusHistory khi trạng thái thay đổi.
+    """
+    order = db.session.get(Order, order_id)
+    if not order:
+        flash("Không tìm thấy đơn hàng yêu cầu.", "danger")
+        return redirect(url_for("admin.orders"))
+
+    form = OrderStatusUpdateForm(status=order.status)
+
+    if form.validate_on_submit():
+        new_status = form.status.data
+        if new_status != order.status:
+            old_status = order.status
+            order.status = new_status
+
+            # Ghi vết lịch sử vào bảng OrderStatusHistory (Chương 6)
+            history_entry = OrderStatusHistory(
+                order_id=order.id,
+                status=new_status,
+                changed_at=datetime.now(),
+            )
+            db.session.add(history_entry)
+            db.session.commit()
+
+            flash(
+                f"Đã cập nhật trạng thái đơn hàng #{order.id} từ '{old_status}' sang '{new_status}' thành công!",
+                "success",
+            )
+        else:
+            flash("Trạng thái đơn hàng không thay đổi.", "info")
+
+        return redirect(url_for("admin.order_detail", order_id=order.id))
+
+    return render_template(
+        "admin/order_detail.html",
+        order=order,
+        form=form,
+        ORDER_STATUS_PENDING=ORDER_STATUS_PENDING,
+        ORDER_STATUS_SHIPPING=ORDER_STATUS_SHIPPING,
+        ORDER_STATUS_COMPLETED=ORDER_STATUS_COMPLETED,
+        ORDER_STATUS_CANCELLED=ORDER_STATUS_CANCELLED,
+    )
