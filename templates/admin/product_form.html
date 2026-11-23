@@ -1,0 +1,179 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}
+  {% if is_edit %}Chỉnh sửa: {{ product.name }}{% else %}Thêm sản phẩm bánh mới{% endif %}
+{% endblock %}
+
+{% block page_title %}
+  {% if is_edit %}Chỉnh sửa sản phẩm bánh{% else %}Thêm sản phẩm bánh mới{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item"><a href="{{ url_for('admin.products') }}" class="text-muted text-decoration-none">Sản phẩm</a></li>
+  <li class="breadcrumb-item active" aria-current="page">
+    {% if is_edit %}Sửa #{{ product.id }}{% else %}Thêm mới{% endif %}
+  </li>
+{% endblock %}
+
+{% block admin_content %}
+<form method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+
+  <div class="row g-4">
+    {# CỘT TRÁI: THÔNG TIN BÁNH CHÍNH (8 COLS) #}
+    <div class="col-lg-8">
+      <div class="yuu-admin-card p-4">
+        <h5 class="fw-bold mb-4" style="color: var(--yuu-brown);">
+          <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+        </h5>
+
+        {# 1. Tên sản phẩm #}
+        <div class="mb-3">
+          {{ form.name.label(class="form-label fw-semibold") }}
+          {{ form.name(class="form-control" + (" is-invalid" if form.name.errors else ""), placeholder="Ví dụ: Bánh Mousse Dâu Tây Hoàng Gia") }}
+          {% for err in form.name.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        {# 2. Danh mục, Giá bán, Tồn kho #}
+        <div class="row g-3 mb-3">
+          <div class="col-md-5">
+            {{ form.category_id.label(class="form-label fw-semibold") }}
+            {{ form.category_id(class="form-select" + (" is-invalid" if form.category_id.errors else "")) }}
+            {% for err in form.category_id.errors %}
+              <div class="invalid-feedback">{{ err }}</div>
+            {% endfor %}
+          </div>
+
+          <div class="col-md-4">
+            {{ form.price.label(class="form-label fw-semibold") }}
+            <div class="input-group">
+              {{ form.price(class="form-control" + (" is-invalid" if form.price.errors else ""), placeholder="50000") }}
+              <span class="input-group-text">đ</span>
+              {% for err in form.price.errors %}
+                <div class="invalid-feedback">{{ err }}</div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="col-md-3">
+            {{ form.stock.label(class="form-label fw-semibold") }}
+            {{ form.stock(class="form-control" + (" is-invalid" if form.stock.errors else ""), placeholder="10") }}
+            {% for err in form.stock.errors %}
+              <div class="invalid-feedback">{{ err }}</div>
+            {% endfor %}
+          </div>
+        </div>
+
+        {# 3. Mô tả ngắn #}
+        <div class="mb-3">
+          {{ form.short_desc.label(class="form-label fw-semibold") }}
+          {{ form.short_desc(class="form-control" + (" is-invalid" if form.short_desc.errors else ""), placeholder="Câu giới thiệu ngắn gọn hiển thị trên thẻ bánh (tối đa 255 ký tự)...") }}
+          {% for err in form.short_desc.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+
+        {# 4. Mô tả chi tiết #}
+        <div class="mb-2">
+          {{ form.description.label(class="form-label fw-semibold") }}
+          {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows="6", placeholder="Mô tả chi tiết về nguyên liệu, cảm giác vị giác, cách bảo quản và thưởng thức...") }}
+          {% for err in form.description.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {# CỘT PHẢI: HÌNH ẢNH & THIẾT LẬP (4 COLS) #}
+    <div class="col-lg-4">
+      {# Card 1: Hình ảnh sản phẩm #}
+      <div class="yuu-admin-card p-3 mb-4">
+        <h6 class="fw-bold mb-3" style="color: var(--yuu-brown);">
+          <i class="bi bi-image me-1"></i>Hình ảnh sản phẩm
+        </h6>
+
+        {# Khung xem trước ảnh #}
+        <div class="text-center mb-3 p-2 bg-light rounded-3 border">
+          {% if is_edit and product.image %}
+            <img src="{{ url_for('static', filename=product.image) }}" id="previewImg"
+                 alt="{{ product.name }}" class="img-fluid rounded-2 object-fit-cover shadow-sm w-100" style="max-height: 200px;">
+            <div class="small text-muted mt-2">Ảnh hiện tại: <code>{{ product.image }}</code></div>
+          {% else %}
+            <div id="previewPlaceholder" class="py-4 text-muted">
+              <i class="bi bi-image fs-1 d-block text-secondary"></i>
+              <span class="small">Chưa có ảnh (sẽ dùng ảnh mặc định)</span>
+            </div>
+            <img id="previewImg" class="img-fluid rounded-2 object-fit-cover shadow-sm w-100 d-none" style="max-height: 200px;">
+          {% endif %}
+        </div>
+
+        {# Tải tệp mới #}
+        <div class="mb-3">
+          {{ form.image_file.label(class="form-label small fw-semibold") }}
+          {{ form.image_file(class="form-control form-control-sm" + (" is-invalid" if form.image_file.errors else ""), id="imageFileInput") }}
+          {% for err in form.image_file.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+          <div class="form-text small">Hỗ trợ file: .jpg, .jpeg, .png, .avif, .webp.</div>
+        </div>
+
+        {# Đường dẫn ảnh nội bộ #}
+        <div>
+          {{ form.existing_image.label(class="form-label small fw-semibold") }}
+          {{ form.existing_image(class="form-control form-control-sm" + (" is-invalid" if form.existing_image.errors else ""), placeholder="images/products/sinh-nhat-1.avif") }}
+          {% for err in form.existing_image.errors %}
+            <div class="invalid-feedback">{{ err }}</div>
+          {% endfor %}
+          <div class="form-text small">Nếu không tải file, bạn có thể nhập đường dẫn ảnh nội bộ có sẵn.</div>
+        </div>
+      </div>
+
+      {# Card 2: Hiển thị & Hành động #}
+      <div class="yuu-admin-card p-3">
+        <h6 class="fw-bold mb-3" style="color: var(--yuu-brown);">
+          <i class="bi bi-sliders me-1"></i>Trạng thái hiển thị
+        </h6>
+
+        <div class="form-check form-switch mb-4">
+          {{ form.is_featured(class="form-check-input", id="featuredSwitch") }}
+          {{ form.is_featured.label(class="form-check-label fw-semibold small", for="featuredSwitch") }}
+          <div class="form-text small">Sản phẩm này sẽ được đưa lên khu vực nổi bật của trang chủ.</div>
+        </div>
+
+        <div class="d-grid gap-2">
+          {{ form.submit(class="btn btn-yuu py-2 fw-semibold shadow-sm") }}
+          <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary py-2">
+            <i class="bi bi-x-circle me-1"></i>Huỷ &amp; Quay lại
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Xem trước ảnh tức thì khi người dùng chọn file từ máy tính
+  const imageInput = document.getElementById("imageFileInput");
+  const previewImg = document.getElementById("previewImg");
+  const placeholder = document.getElementById("previewPlaceholder");
+
+  if (imageInput && previewImg) {
+    imageInput.addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          previewImg.src = evt.target.result;
+          previewImg.classList.remove("d-none");
+          if (placeholder) placeholder.classList.add("d-none");
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+</script>
+{% endblock %}

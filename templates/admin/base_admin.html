@@ -39,7 +39,7 @@
           <span>Tổng quan</span>
         </a>
 
-        <a href="#"
+        <a href="{{ url_for('admin.products') }}"
            class="yuu-admin-nav-item {% if request.endpoint in ['admin.products', 'admin.product_add', 'admin.product_edit'] %}active{% endif %}">
           <i class="bi bi-cake2 me-2"></i>
           <span>Sản phẩm</span>

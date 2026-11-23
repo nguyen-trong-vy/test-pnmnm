@@ -1,0 +1,193 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Quản lý sản phẩm{% endblock %}
+{% block page_title %}Danh sách sản phẩm bánh{% endblock %}
+
+{% block breadcrumb %}
+  <li class="breadcrumb-item active" aria-current="page">Sản phẩm</li>
+{% endblock %}
+
+{% block admin_content %}
+{# Hàng tiêu đề & Nút Thêm mới #}
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-4">
+  <div>
+    <p class="text-muted mb-0 small">
+      Hiển thị <strong>{{ pagination.total }}</strong> sản phẩm trong hệ thống (Trang {{ pagination.page }} / {{ pagination.pages or 1 }})
+    </p>
+  </div>
+  <a href="{{ url_for('admin.product_add') }}" class="btn btn-yuu px-3 py-2 shadow-sm">
+    <i class="bi bi-plus-circle me-1"></i>Thêm sản phẩm mới
+  </a>
+</div>
+
+{# Thanh công cụ tìm kiếm và bộ lọc #}
+<div class="yuu-admin-card p-3 mb-4">
+  <form method="get" action="{{ url_for('admin.products') }}" class="row g-2 align-items-center">
+    {# Tìm kiếm tên / mô tả #}
+    <div class="col-md-4">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-light"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" value="{{ q }}" class="form-control"
+               placeholder="Tìm theo tên bánh, hương vị...">
+      </div>
+    </div>
+
+    {# Lọc theo danh mục #}
+    <div class="col-sm-6 col-md-3">
+      <select name="category_id" class="form-select form-select-sm">
+        <option value="">-- Tất cả danh mục --</option>
+        {% for cat in categories %}
+          <option value="{{ cat.id }}" {% if selected_category_id == cat.id %}selected{% endif %}>
+            {{ cat.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {# Lọc theo tồn kho #}
+    <div class="col-sm-6 col-md-3">
+      <select name="stock" class="form-select form-select-sm">
+        <option value="all" {% if selected_stock == 'all' %}selected{% endif %}>-- Tồn kho: Tất cả --</option>
+        <option value="in_stock" {% if selected_stock == 'in_stock' %}selected{% endif %}>Còn hàng dồi dào (&gt; 5)</option>
+        <option value="low_stock" {% if selected_stock == 'low_stock' %}selected{% endif %}>Sắp hết hàng (1 &ndash; 5)</option>
+        <option value="out_of_stock" {% if selected_stock == 'out_of_stock' %}selected{% endif %}>Đã hết hàng (= 0)</option>
+      </select>
+    </div>
+
+    {# Nút Lọc & Nút Đặt lại #}
+    <div class="col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-sm btn-yuu flex-grow-1">
+        <i class="bi bi-funnel me-1"></i>Lọc
+      </button>
+      {% if q or selected_category_id or selected_stock != 'all' %}
+        <a href="{{ url_for('admin.products') }}" class="btn btn-sm btn-outline-secondary" title="Đặt lại bộ lọc">
+          <i class="bi bi-arrow-counterclockwise"></i>
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{# Bảng danh sách sản phẩm #}
+<div class="yuu-admin-card overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light small">
+        <tr>
+          <th scope="col" class="ps-3" style="width: 60px;">ID</th>
+          <th scope="col" style="width: 80px;">Hình ảnh</th>
+          <th scope="col">Tên sản phẩm</th>
+          <th scope="col">Danh mục</th>
+          <th scope="col">Giá bán</th>
+          <th scope="col">Tồn kho</th>
+          <th scope="col" class="text-center">Nổi bật</th>
+          <th scope="col" class="text-end pe-3" style="width: 130px;">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+          <tr>
+            <td class="ps-3 fw-bold text-muted">#{{ p.id }}</td>
+            <td>
+              <img src="{{ url_for('static', filename=p.image) }}" alt="{{ p.name }}"
+                   class="rounded-2 border object-fit-cover shadow-sm" style="width: 50px; height: 50px;">
+            </td>
+            <td>
+              <div class="fw-semibold text-dark">{{ p.name }}</div>
+              <div class="text-muted small text-truncate" style="max-width: 320px;" title="{{ p.short_desc }}">
+                {{ p.short_desc }}
+              </div>
+            </td>
+            <td>
+              <span class="badge text-bg-light border text-dark">{{ p.category.name if p.category else '—' }}</span>
+            </td>
+            <td class="fw-bold" style="color: var(--yuu-brown);">
+              {{ p.price | vnd }}
+            </td>
+            <td>
+              {% if p.stock == 0 %}
+                <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Hết hàng</span>
+              {% elif p.stock <= 5 %}
+                <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-circle me-1"></i>Còn {{ p.stock }}</span>
+              {% else %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle fw-semibold">Còn {{ p.stock }}</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              {% if p.is_featured %}
+                <span class="badge text-bg-warning text-dark" title="Hiển thị tại khu vực Sản phẩm nổi bật">
+                  <i class="bi bi-star-fill text-dark me-1"></i>Nổi bật
+                </span>
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end pe-3">
+              <a href="{{ url_for('admin.product_edit', product_id=p.id) }}"
+                 class="btn btn-sm btn-outline-primary me-1" title="Chỉnh sửa sản phẩm">
+                <i class="bi bi-pencil-square"></i>
+              </a>
+
+              <form action="{{ url_for('admin.product_delete', product_id=p.id) }}" method="post" class="d-inline"
+                    onsubmit="return confirm('Bạn có chắc chắn muốn xoá sản phẩm \'{{ p.name }}\' không? Lưu ý: Nếu sản phẩm đã nằm trong đơn hàng cũ, hệ thống sẽ ngăn xoá.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xoá sản phẩm">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr>
+            <td colspan="8" class="text-center py-5 text-muted">
+              <i class="bi bi-inbox fs-1 d-block mb-2 text-muted"></i>
+              Không tìm thấy sản phẩm bánh nào phù hợp với bộ lọc hiện tại.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Phân trang chuẩn #}
+  {% if pagination.pages > 1 %}
+    <div class="p-3 border-top d-flex justify-content-between align-items-center">
+      <div class="small text-muted">
+        Trang {{ pagination.page }} / {{ pagination.pages }}
+      </div>
+      <nav aria-label="Phân trang sản phẩm">
+        <ul class="pagination pagination-sm mb-0">
+          {# Nút Trước #}
+          <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+            <a class="page-link"
+               href="{{ url_for('admin.products', page=pagination.prev_num, q=q, category_id=selected_category_id, stock=selected_stock) }}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+
+          {% for p_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p_num %}
+              <li class="page-item {% if p_num == pagination.page %}active{% endif %}">
+                <a class="page-link"
+                   href="{{ url_for('admin.products', page=p_num, q=q, category_id=selected_category_id, stock=selected_stock) }}">
+                  {{ p_num }}
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+          {% endfor %}
+
+          {# Nút Sau #}
+          <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+            <a class="page-link"
+               href="{{ url_for('admin.products', page=pagination.next_num, q=q, category_id=selected_category_id, stock=selected_stock) }}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
