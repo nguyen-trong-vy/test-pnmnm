@@ -32,8 +32,22 @@
         <i class="bi bi-stars text-warning me-1"></i>
         Miễn phí vận chuyển trong phạm vi 2km &amp; đơn từ 200.000 đ · Đặt bánh ngay: <strong>0944100001</strong>
       </div>
-      <div class="small text-white-50 d-none d-sm-block">
-        <i class="bi bi-clock me-1"></i>Mở cửa: 08:00 - 21:30 hàng ngày
+      <div>
+        {% if session.get('admin_logged_in') %}
+          <span class="badge bg-warning text-dark me-2">
+            <i class="bi bi-shield-check me-1"></i>Admin: {{ session.get('admin_user', {}).get('username', 'admin') }}
+          </span>
+          <a href="{{ url_for('admin.dashboard') }}" class="text-white text-decoration-underline small me-2">
+            Vào Quản trị
+          </a>
+          <a href="{{ url_for('admin.logout') }}" class="text-white-50 text-decoration-none small">
+            Đăng xuất
+          </a>
+        {% else %}
+          <a href="{{ url_for('admin.login') }}" class="text-white text-decoration-none small opacity-75 hover-opacity-100">
+            <i class="bi bi-speedometer2 me-1 text-warning"></i>Khu vực Quản trị
+          </a>
+        {% endif %}
       </div>
     </div>
   </div>

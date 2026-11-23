@@ -16,6 +16,7 @@ from typing import List, Optional
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from extensions import db
 
@@ -176,3 +177,32 @@ class BlogPost(db.Model):
     content: Mapped[str] = mapped_column(Text, nullable=False)
     image: Mapped[str] = mapped_column(String(255), nullable=False)
     published_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False)
+
+
+class User(db.Model):
+    """
+    Bảng người dùng hệ thống (Admin & Quản lý).
+    Kiến thức Chương 6:
+    - Băm mật khẩu an toàn bằng werkzeug.security (Chương 5 & 6).
+    - Cung cấp phương thức set_password và check_password.
+    """
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
+    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(120), nullable=False)
+    role: Mapped[str] = mapped_column(String(20), default="admin", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now, nullable=False)
+
+    def set_password(self, password: str) -> None:
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self) -> str:
+        return f"<User {self.username} ({self.role})>"
+

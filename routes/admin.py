@@ -1,22 +1,115 @@
-import os, re, unicodedata, time, csv, io
+"""
+routes/admin.py - Phân hệ Quản trị Viên (Phần B: Màn hình ⑥ đến ⑪) cho Tiệm bánh Yuu Cake.
+
+Kiến thức áp dụng:
+- Chương 3: Blueprint với tiền tố /admin, url_for, redirect, render_template, abort.
+- Chương 4: Kế thừa giao diện templates/admin/base_admin.html.
+- Chương 5: Form quản trị Flask-WTF, bảo vệ CSRF, upload ảnh an toàn và flash message.
+- Chương 6: Truy vấn nâng cao SQLAlchemy 2.0 (func.count, func.sum, filter, join, order_by, db.paginate).
+"""
+
+import re
+import time
+import unicodedata
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from flask import Blueprint, render_template, request, session, url_for, flash, redirect, abort, current_app, make_response
-from sqlalchemy import func, select, or_
+
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
+from sqlalchemy import func, or_, select
 from werkzeug.utils import secure_filename
+
 from extensions import db
-from forms import ProductAdminForm, CategoryAdminForm, OrderStatusUpdateForm
-from models import Category, Order, Product, OrderItem, OrderStatusHistory, ORDER_STATUS_PENDING, ORDER_STATUS_SHIPPING, ORDER_STATUS_COMPLETED, ORDER_STATUS_CANCELLED
+from forms import (
+    AdminLoginForm,
+    CategoryAdminForm,
+    OrderStatusUpdateForm,
+    ProductAdminForm,
+)
+from models import (
+    ORDER_STATUS_CANCELLED,
+    ORDER_STATUS_COMPLETED,
+    ORDER_STATUS_PENDING,
+    ORDER_STATUS_SHIPPING,
+    Category,
+    Order,
+    OrderItem,
+    OrderStatusHistory,
+    Product,
+    User,
+)
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
+
 def admin_required(view_func):
-    """Decorator tạm thời (ở Commit 14 sẽ bổ sung kiểm tra session login thật)."""
+    """
+    Decorator kiểm tra quyền Quản trị viên (Chương 5: Session & Security).
+    - Kiểm tra session.get('admin_logged_in') == True.
+    - Nếu chưa đăng nhập: lưu URL đang vào (?next=...) và chuyển hướng sang /admin/login.
+    """
     @wraps(view_func)
     def wrapped_view(*args, **kwargs):
+        if not session.get("admin_logged_in"):
+            flash("Vui lòng đăng nhập quyền Quản trị viên để truy cập khu vực này.", "warning")
+            return redirect(url_for("admin.login", next=request.full_path))
         return view_func(*args, **kwargs)
+
     return wrapped_view
+
+
+@admin_bp.route("/login", methods=["GET", "POST"])
+def login():
+    """
+    Trang đăng nhập Quản trị viên (/admin/login).
+    Tài khoản quản trị mẫu mặc định: admin / admin123
+    """
+    if session.get("admin_logged_in"):
+        return redirect(url_for("admin.dashboard"))
+
+    form = AdminLoginForm()
+    if form.validate_on_submit():
+        username = form.username.data.strip()
+        password = form.password.data
+
+        user = db.session.scalar(select(User).where(User.username == username))
+        if user and user.check_password(password) and user.role == "admin":
+            session["admin_logged_in"] = True
+            session["admin_user"] = {
+                "id": user.id,
+                "username": user.username,
+                "full_name": user.full_name,
+            }
+            flash(f"Chào mừng {user.full_name} quay trở lại Trang Quản trị!", "success")
+
+            next_url = request.args.get("next")
+            if next_url and next_url.startswith("/admin") and next_url != url_for("admin.login"):
+                return redirect(next_url)
+            return redirect(url_for("admin.dashboard"))
+        else:
+            flash("Tên đăng nhập hoặc mật khẩu không chính xác.", "danger")
+
+    return render_template("admin/login.html", form=form)
+
+
+@admin_bp.route("/logout")
+def logout():
+    """Đăng xuất khỏi phiên làm việc Quản trị viên."""
+    session.pop("admin_logged_in", None)
+    session.pop("admin_user", None)
+    flash("Bạn đã đăng xuất khỏi Trang Quản trị an toàn.", "info")
+    return redirect(url_for("admin.login"))
+
 
 def slugify_vn(text: str) -> str:
     """Tạo slug chuẩn URL từ chuỗi tiếng Việt có dấu (vd: 'Bánh Donut Dâu' -> 'banh-donut-dau')."""

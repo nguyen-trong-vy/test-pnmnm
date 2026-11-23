@@ -228,3 +228,29 @@ class OrderStatusUpdateForm(FlaskForm):
         validators=[DataRequired(message="Vui lòng chọn trạng thái đơn hàng.")],
     )
     submit = SubmitField("Cập nhật trạng thái")
+
+
+class AdminLoginForm(FlaskForm):
+    """
+    Biểu mẫu Đăng nhập dành cho Quản trị viên (/admin/login).
+    Kiến thức Chương 5:
+    - Bắt lỗi dữ liệu bằng WTForms validators.
+    - PasswordField ẩn ký tự mật khẩu.
+    """
+
+    username = StringField(
+        "Tên đăng nhập",
+        validators=[
+            DataRequired(message="Vui lòng nhập tên đăng nhập admin."),
+            Length(min=3, max=50, message="Tên đăng nhập từ 3 đến 50 ký tự."),
+        ],
+    )
+    password = PasswordField(
+        "Mật khẩu",
+        validators=[DataRequired(message="Vui lòng nhập mật khẩu.")],
+    )
+    submit = SubmitField("Đăng nhập Quản trị")
+
+
+
+
